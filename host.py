@@ -6,9 +6,9 @@ import uvicorn
 import requests
 import json
 import uuid
-from subprocess import Popen
+import pexpect
+from subprocess import Popen, PIPE
 from fastapi import FastAPI, Request
-from websockets.asyncio.client import connect, ClientConnection
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
@@ -16,13 +16,9 @@ class Bot:
     def __init__(
         self,
         process: Popen,
-        port: int,
-        websocket: ClientConnection,
         last_message: float,
     ):
         self.process = process
-        self.port = port
-        self.websocket = websocket
         self.last_message = last_message
 
 
@@ -31,9 +27,6 @@ app_url = os.environ.get("APP_URL", "http://localhost:3000")
 app_key = "567686a8-6fa1-4c34-88dc-4550154bbab7"
 
 bots: dict[str, Bot] = {}
-ports: dict[str, bool] = {}
-bot_start_port = 7000
-bot_port = bot_start_port
 
 app = FastAPI()
 
@@ -44,7 +37,7 @@ def ping():
 
 
 @app.post("/bot/{bot_id}/{updated}")
-async def bot(bot_id: str, updated: str, conversation_id: str, request: Request):
+async def bot(bot_id: str, updated: str, request: Request):
     return await bot_everything(
         bot_id=bot_id,
         updated=updated,
@@ -75,24 +68,23 @@ async def bot_everything(
     conversation_thread_id: Optional[str],
     request: Request,
 ):
-    global bot_port, ports, bots
+    global bots
 
     body = await request.body()
-    print("BODY", body)
     key = f"{bot_id}-{updated}-{conversation_id}-{conversation_thread_id}"
     bot = bots.get(key)
     if bot is not None and bot.process.poll() is None:
         try:
             bot.last_message = time.time()
-            await bot.websocket.send(body)
+            bot.process.stdin.write(body)
+            bot.process.stdin.write(b"\n")
             return "OK"
-        except:
-            print(f"[BOT] {key} failed to send command")
+        except Exception as e:
+            print(f"[BOT] {key} failed to send command", e)
 
     if bot is not None:
         bot.process.kill()
         del bots[key]
-        del ports[bot.port]
 
     # Get bot python code and JWT and bot params
     response = requests.post(
@@ -108,18 +100,11 @@ async def bot_everything(
     )
 
     output = response.json()
-    print("Response:", json.dumps(output, indent=4))
+    # print("Response:", json.dumps(output, indent=4))
 
     python_file = f"{str(uuid.uuid4())}.py"
     with open(python_file, "w") as f:
         f.write(output.get("codePython"))
-
-    # Find next available port
-    while ports.get(bot_port) is not None:
-        bot_port += 1
-
-    port = bot_port
-    ports[port] = True
 
     process = Popen(
         [
@@ -136,31 +121,22 @@ async def bot_everything(
                     "params": output.get("params"),
                 }
             ),
-        ]
+        ],
+        bufsize=0,
+        stdin=PIPE,
     )
-    start = time.time()
-    while True:
-        # Fail after 5 seconds
-        if time.time() - start > 5:
-            os.remove(python_file)
-            return "FAILED"
 
-        try:
-            async with connect(f"ws://localhost:{port}") as websocket:
-                await websocket.send(body)
+    process.stdin.write(body)
+    process.stdin.write(b"\n")
 
-                bots[key] = Bot(
-                    process=process,
-                    port=port,
-                    websocket=websocket,
-                    last_message=time.time(),
-                )
+    bots[key] = Bot(
+        process=process,
+        last_message=time.time(),
+    )
 
-                # os.remove(python_file)
+    # os.remove(python_file)
 
-                return "OK"
-        except:
-            await asyncio.sleep(0.1)
+    return "OK"
 
 
 def cron():
@@ -170,14 +146,12 @@ def cron():
         if bot.process.poll() is not None:
             print(f"[BOT] {key} died")
             del bots[key]
-            del ports[bot.port]
 
         # If no bot message in last 5 minutes then kill the process
         if now - bot.last_message > 5 * 60:
             print(f"[BOT] {key} inactive")
             bot.process.kill()
             del bots[key]
-            del ports[bot.port]
 
 
 sched = BackgroundScheduler()
