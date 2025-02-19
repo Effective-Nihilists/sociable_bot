@@ -1,6 +1,7 @@
 from dataclasses import asdict, is_dataclass
 import os
-from typing import Any, Dict, List, Optional, Union
+import asyncio
+from typing import Any, Awaitable, Dict, List, Optional, Union
 import sys
 import json
 import socketio
@@ -17,7 +18,7 @@ port = sys.argv[1]
 token = sys.argv[2]
 data = json.loads(sys.argv[3])
 params = data.get("params")
-sio = socketio.Client()
+sio = socketio.AsyncClient()
 context = {
     "botId": data["botId"],
     "botCodeId": data["botCodeId"],
@@ -28,18 +29,18 @@ context = {
 
 
 # @sio.event
-# def connect():
+# async def connect():
 #     print("[BOT] connection established")
 
 
 # @sio.event
-# def disconnect():
+# async def disconnect():
 #     print("[BOT] disconnected from server")
 
 
-def start():
+async def main():
     # print("[BOT] start client socket", app_url)
-    sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
+    await sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
     while True:
         message = sys.stdin.readline()[:-1]
         if len(message) > 0:
@@ -47,12 +48,16 @@ def start():
             msg = json.loads(message)
             func = funcs.get(msg.get("func"))
             if func is not None:
-                func(**msg.get("params"))
+                await func(**msg.get("params"))
 
 
-def call(op: str, params: dict) -> dict:
+def start():
+    asyncio.run(main())
+
+
+async def call(op: str, params: dict) -> Awaitable[dict]:
     # print("[BOT] client socket send", op, context, params)
-    result = sio.call(
+    result = await sio.call(
         "call",
         {
             "op": op,
@@ -66,8 +71,8 @@ def call(op: str, params: dict) -> dict:
     return result.get("data")
 
 
-def conversation(id: str) -> Optional[Conversation]:
-    result = call(
+async def conversation(id: str) -> Optional[Conversation]:
+    result = await call(
         "botCodeConversationGet",
         {
             "id": id,
@@ -76,8 +81,8 @@ def conversation(id: str) -> Optional[Conversation]:
     return Conversation(**result) if result is not None else None
 
 
-def user(id: str) -> Optional[User]:
-    result = call(
+async def user(id: str) -> Optional[User]:
+    result = await call(
         "botCodeUserGet",
         {
             "id": id,
@@ -86,8 +91,8 @@ def user(id: str) -> Optional[User]:
     return User(**result) if result is not None else None
 
 
-def user_private(id: str) -> Optional[UserPrivate]:
-    result = call(
+async def user_private(id: str) -> Optional[UserPrivate]:
+    result = await call(
         "botCodeUserPrivateGet",
         {
             "id": id,
@@ -96,8 +101,8 @@ def user_private(id: str) -> Optional[UserPrivate]:
     return UserPrivate(**result) if result is not None else None
 
 
-def live_user(id: str) -> Optional[LiveUser]:
-    result = call(
+async def live_user(id: str) -> Optional[LiveUser]:
+    result = await call(
         "botCodeLiveUserGet",
         {
             "id": id,
@@ -106,8 +111,8 @@ def live_user(id: str) -> Optional[LiveUser]:
     return LiveUser(**result) if result is not None else None
 
 
-def bot(id: str) -> Optional[Bot]:
-    result = call(
+async def bot(id: str) -> Optional[Bot]:
+    result = await call(
         "botCodeBotGet",
         {
             "id": id,
@@ -116,21 +121,21 @@ def bot(id: str) -> Optional[Bot]:
     return Bot(**result) if result is not None else None
 
 
-def bot_owners(id: str) -> List[str]:
-    return call(
+async def bot_owners(id: str) -> List[str]:
+    return await call(
         "botCodeBotOwnersGet",
         {"id": id},
     )
 
 
-def message_typing() -> None:
-    call(
+async def message_typing() -> None:
+    await call(
         "botCodeMessageTyping",
         {},
     )
 
 
-def message_send(
+async def message_send(
     id: Optional[str] = None,
     text: Optional[str] = None,
     images: Optional[List[Union[ImageBase64Result, ImageUriResult, None]]] = None,
@@ -147,7 +152,7 @@ def message_send(
     thread: Optional[Thread] = None,
 ) -> Message:
     return Message(
-        **call(
+        **await call(
             "botCodeMessageSend",
             {
                 "id": id,
@@ -169,11 +174,11 @@ def message_send(
     )
 
 
-def message_edit(
+async def message_edit(
     id: str, text: Optional[str] = None, markdown: Optional[str] = None
 ) -> Message:
     return Message(
-        **call(
+        **await call(
             "botCodeMessageEdit",
             {
                 "id": id,
@@ -184,10 +189,10 @@ def message_edit(
     )
 
 
-def messages_to_text(
+async def messages_to_text(
     messages: List[Message], strip_names: Optional[bool] = None
 ) -> str:
-    return call(
+    return await call(
         "botCodeMessagesToText",
         {
             "messages": messages,
@@ -196,14 +201,14 @@ def messages_to_text(
     )
 
 
-def message_history(
+async def message_history(
     duration: Optional[int] = None,
     limit: Optional[int] = None,
     start: Optional[int] = None,
     include_hidden: Optional[bool] = None,
     thread_id: Optional[str] = None,
 ) -> List[Message]:
-    result = call(
+    result = await call(
         "botCodeMessageHistory",
         {
             "duration": duration,
@@ -217,7 +222,7 @@ def message_history(
     return list(map(lambda m: Message(**m), result))
 
 
-def text_gen(
+async def text_gen(
     question: Optional[str] = None,
     instruction: Optional[str] = None,
     messages: Optional[List[Union[TextGenMessage, Message]]] = None,
@@ -233,7 +238,7 @@ def text_gen(
     include_files: Optional[bool] = None,
     json: Optional[Dict[str, Any]] = None,
 ) -> str:
-    return call(
+    return await call(
         "botCodeTextGen",
         {
             "question": question,
@@ -258,13 +263,13 @@ def text_gen(
     )
 
 
-def query_files(
+async def query_files(
     query: str,
     scope: Optional[str] = None,
     catalog_ids: Optional[List[str]] = None,
     limit: Optional[int] = None,
 ) -> List[FileChunk]:
-    result = call(
+    result = await call(
         "botCodeQueryFiles",
         {
             "query": query,
@@ -277,10 +282,10 @@ def query_files(
     return list(map(lambda m: FileChunk(**m), result))
 
 
-def query_news(
+async def query_news(
     query: str, created: Optional[int] = None, limit: Optional[int] = None
 ) -> List[NewsArticle]:
-    result = call(
+    result = await call(
         "botCodeQueryNews",
         {
             "query": query,
@@ -292,7 +297,7 @@ def query_news(
     return list(map(lambda m: NewsArticle(**m), result))
 
 
-def image_gen(
+async def image_gen(
     prompt: str,
     model: Optional[ImageGenModel] = None,
     negative_prompt: Optional[str] = None,
@@ -302,7 +307,7 @@ def image_gen(
     image: Optional[ImageResult] = None,
     image_strength: Optional[float] = None,
 ) -> Optional[ImageBase64Result]:
-    result = call(
+    result = await call(
         "botCodeImageGen",
         {
             "prompt": prompt,
@@ -318,8 +323,8 @@ def image_gen(
     return ImageBase64Result(**result) if result is not None else None
 
 
-def google_search(query: str) -> List[SearchArticle]:
-    result = call(
+async def google_search(query: str) -> List[SearchArticle]:
+    result = await call(
         "botCodeGoogleSearch",
         {
             "query": query,
@@ -329,7 +334,7 @@ def google_search(query: str) -> List[SearchArticle]:
     return list(map(lambda m: SearchArticle(**m), result))
 
 
-def email_send(
+async def email_send(
     user_id: Optional[str] = None,
     user_ids: Optional[List[str]] = None,
     subject: Optional[str] = None,
@@ -337,7 +342,7 @@ def email_send(
     markdown: Optional[str] = None,
     file_id: Optional[str] = None,
 ) -> None:
-    call(
+    await call(
         "botCodeEmailSend",
         {
             "userId": user_id,
@@ -350,10 +355,10 @@ def email_send(
     )
 
 
-def conversation_users(
+async def conversation_users(
     type: Optional[str] = None, role: Optional[str] = None
 ) -> List[User]:
-    result = call(
+    result = await call(
         "botCodeConversationUsers",
         {"type": type, "role": role},
     )
@@ -361,8 +366,8 @@ def conversation_users(
     return list(map(lambda m: User(**m), result))
 
 
-def conversation_bots(tag: Optional[BotTag] = None) -> List[Bot]:
-    result = call(
+async def conversation_bots(tag: Optional[BotTag] = None) -> List[Bot]:
+    result = await call(
         "botCodeConversationBots",
         {
             "tag": tag,
@@ -372,17 +377,17 @@ def conversation_bots(tag: Optional[BotTag] = None) -> List[Bot]:
     return list(map(lambda m: Bot(**m), result))
 
 
-def conversation_show_content(content: ConversationContent) -> None:
-    call(
+async def conversation_show_content(content: ConversationContent) -> None:
+    await call(
         "botCodeConversationShowContent",
         content,
     )
 
 
-def conversation_show_buttons(
+async def conversation_show_buttons(
     user_id: Optional[str] = None, buttons: Optional[List[MessageButton]] = None
 ) -> None:
-    call(
+    await call(
         "botCodeConversationShowButtons",
         {
             "userId": user_id,
@@ -391,8 +396,8 @@ def conversation_show_buttons(
     )
 
 
-def conversation_participants(type: Optional[str] = None) -> List[User]:
-    result = call(
+async def conversation_participants(type: Optional[str] = None) -> List[User]:
+    result = await call(
         "botCodeConversationParticipants",
         {
             "type": type,
@@ -402,7 +407,7 @@ def conversation_participants(type: Optional[str] = None) -> List[User]:
     return list(map(lambda m: User(**m), result))
 
 
-def file_create(
+async def file_create(
     type: FileType,
     title: str,
     markdown: Optional[str] = None,
@@ -416,7 +421,7 @@ def file_create(
     send_notification: Optional[bool] = None,
 ) -> File:
     return File(
-        **call(
+        **await call(
             "botCodeFileCreate",
             {
                 "type": type,
@@ -435,13 +440,13 @@ def file_create(
     )
 
 
-def file_update(
+async def file_update(
     id: str,
     markdown: Optional[str] = None,
     title: Optional[str] = None,
     thumbnail: Optional[ImageResult] = None,
 ) -> None:
-    call(
+    await call(
         "botCodeFileUpdate",
         {
             "id": id,
@@ -452,14 +457,14 @@ def file_update(
     )
 
 
-def file_to_text_gen_message(
+async def file_to_text_gen_message(
     file: File,
     role: Optional[TextGenRole] = None,
     include_name: Optional[bool] = None,
     text: Optional[str] = None,
 ) -> TextGenMessage:
     return TextGenMessage(
-        **call(
+        **await call(
             "botCodeFileToTextGenMessage",
             {
                 "file": file,
@@ -471,10 +476,10 @@ def file_to_text_gen_message(
     )
 
 
-def markdown_create_image(
+async def markdown_create_image(
     file_id: str, image: Union[ImageBase64Result, ImageUriResult]
 ) -> str:
-    return call(
+    return await call(
         "botCodeMarkdownCreateImage",
         {
             "file_id": file_id,
@@ -483,22 +488,22 @@ def markdown_create_image(
     )
 
 
-def data_set(**kwargs) -> dict:
-    return call(
+async def data_set(**kwargs) -> dict:
+    return await call(
         "botCodeDataSet",
         kwargs,
     )
 
 
-def data() -> dict:
-    return call(
+async def data() -> dict:
+    return await call(
         "botCodeDataGet",
         {},
     )
 
 
-def bot_search(query: str, limit: Optional[int] = None) -> List[Bot]:
-    result = call(
+async def bot_search(query: str, limit: Optional[int] = None) -> List[Bot]:
+    result = await call(
         "botCodeBotSearch",
         {"query": query, "limit": limit},
     )
@@ -513,12 +518,14 @@ def log(
     *args: list[Any],
 ) -> List[Bot]:
     old_print(args)
-    call(
-        "botCodeLog",
-        {
-            "type": "log",
-            "args": list(map(lambda x: asdict(x) if is_dataclass(x) else x, args)),
-        },
+    asyncio.create_task(
+        call(
+            "botCodeLog",
+            {
+                "type": "log",
+                "args": list(map(lambda x: asdict(x) if is_dataclass(x) else x, args)),
+            },
+        )
     )
 
 
@@ -528,10 +535,12 @@ print = log
 def error(
     *args: list[Any],
 ) -> List[Bot]:
-    call(
-        "botCodeLog",
-        {
-            "type": "error",
-            "args": list(map(lambda x: asdict(x) if is_dataclass(x) else x, args)),
-        },
+    asyncio.create_task(
+        call(
+            "botCodeLog",
+            {
+                "type": "error",
+                "args": list(map(lambda x: asdict(x) if is_dataclass(x) else x, args)),
+            },
+        )
     )

@@ -1,12 +1,11 @@
+import asyncio
 import os
 import time
-import asyncio
 from typing import Optional
 import uvicorn
 import requests
 import json
 import uuid
-import pexpect
 from subprocess import Popen, PIPE
 from fastapi import FastAPI, Request
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -23,7 +22,7 @@ class Bot:
 
 
 port = os.environ.get("PORT", 6000)
-app_url = os.environ.get("APP_URL", "http://localhost:3000")
+app_host = os.environ.get("APP_HOST", "localhost:3000")
 app_key = "567686a8-6fa1-4c34-88dc-4550154bbab7"
 
 bots: dict[str, Bot] = {}
@@ -88,7 +87,7 @@ async def bot_everything(
 
     # Get bot python code and JWT and bot params
     response = requests.post(
-        f"{app_url}/request",
+        f"http://{app_host}/request",
         json={
             "op": "botRunner",
             "input": {
@@ -115,6 +114,7 @@ async def bot_everything(
             json.dumps(
                 {
                     "botId": bot_id,
+                    "botCodeId": output.get("botCodeId"),
                     "conversationId": conversation_id,
                     "conversationThreadId": conversation_thread_id,
                     "chargeUserIds": output.get("chargeUserIds"),
@@ -124,7 +124,31 @@ async def bot_everything(
         ],
         bufsize=0,
         stdin=PIPE,
+        stderr=PIPE,
     )
+
+    def send_error_log():
+        line = process.stderr.readline().decode()
+        if len(line) > 0:
+            print("[ERROR]", line)
+            requests.post(
+                f"http://{app_host}/request",
+                json={
+                    "op": "botCodeLog",
+                    "input": {
+                        "context": {
+                            "botId": bot_id,
+                            "botCodeId": output.get("botCodeId"),
+                            "conversationId": conversation_id,
+                            "conversationThreadId": conversation_thread_id,
+                            "chargeUserIds": output.get("chargeUserIds"),
+                        },
+                        "params": {"type": "error", "args": [line]},
+                    },
+                },
+            )
+
+    asyncio.get_event_loop().add_reader(process.stderr, send_error_log)
 
     process.stdin.write(body)
     process.stdin.write(b"\n")

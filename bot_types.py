@@ -1,431 +1,381 @@
-from enum import Enum
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Protocol, Union
+from enum import StrEnum
+import inspect
+from typing import Any, Dict, List, Optional, Union
+from dataclasses import dataclass
+from bot_enums import *
+
+funcs = {}
+
+name_map = {
+    "message_direct": "messageDirect",
+    "message_add": "messageAdd",
+    "bot_hourly": "botHourly",
+    "file_create": "fileCreate",
+    "conversation_hourly": "conversationHourly",
+    "conversation_start": "conversationStart",
+    "conversation_user_add": "conversationUserAdd",
+    "meeting_start": "meetingStart",
+    "meeting_stop": "meetingStop",
+    "meeting_user_visible": "meetingUserVisible",
+    "thread_stop": "threadStop",
+    "input_changed": "inputChanged",
+}
 
 
-# JUSTIN: auto-gen enums
+def export(name: str):
+    def inner(func):
+        global funcs
+
+        sig = inspect.signature(func)
+        parameters = sig.parameters.values()
+
+        # Check if function accepts arbitrary kwargs (**kwargs)
+        accepts_kwargs = any(
+            p.kind == inspect.Parameter.VAR_KEYWORD for p in parameters
+        )
+
+        # Collect allowed parameter names if no **kwargs
+        allowed_params = set()
+        if not accepts_kwargs:
+            for param in parameters:
+                if param.kind in (
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    inspect.Parameter.KEYWORD_ONLY,
+                ):
+                    allowed_params.add(param.name)
+
+        def wrapper(**kwargs):
+            if not accepts_kwargs:
+                # Filter kwargs to only allowed parameters
+                filtered_kwargs = {
+                    k: v for k, v in kwargs.items() if k in allowed_params
+                }
+                return func(**filtered_kwargs)
+            return func(**kwargs)
+
+        mapped_name = name_map.get(name)
+
+        funcs[mapped_name if mapped_name is not None else name] = wrapper
+
+        return func
+
+    return inner
 
 
-class UserLangT:
-    pass
-
-
-class MessageVisibility:
-    pass
-
-
-class MessageColor:
-    pass
-
-
-class Mood:
-    pass
-
-
-class ButtonType:
-    pass
-
-
-class MessageIcon:
-    pass
-
-
-class UserLang:
-    pass
-
-
-class FileType:
-    pass
-
-
-class BotTag:
-    pass
-
-
-class Avatar:
-    pass
-
-
-class Timezone:
-    pass
-
-
-class Emotion:
-    pass
-
-
-class ConversationType:
-    pass
-
-
-class TextGenModel(Enum):
-    TOGETHER_MISTRAL_7B = "together_mistral_7b"
-    TOGETHER_MIXTRAL_8X7B = "together_mixtral_8x7b"
-    TOGETHER_MIXTRAL_8X22B = "together_mixtral_8x22b"
-    TOGETHER_META_LLAMA_3_8B = "together_meta_llama_3_8b"
-    TOGETHER_META_LLAMA_3_70B = "together_meta_llama_3_70b"
-    TOGETHER_META_LLAMA_3_405B = "together_meta_llama_3_405b"
-    TOGETHER_META_LLAMA_VISION_3_11B = "together_meta_llama_vision_3_11b"
-    TOGETHER_META_LLAMA_VISION_3_90B = "together_meta_llama_vision_3_90b"
-    TOGETHER_QWEN2_VISION_72B = "together_qwen2_vision_72b"
-    TOGETHER_QWEN2_72B = "together_qwen2_72b"
-    TOGETHER_DEEPSEEK_R1 = "together_deepseek_r1"
-    TOGETHER_DEEPSEEK_V3 = "together_deepseek_v3"
-
-
-class ImageType(Enum):
+class ImageType(StrEnum):
     PUBLIC = "public"
     URI = "uri"
     BASE64 = "base64"
 
 
-class CodeTextGenRole(Enum):
-    USER = "user"
-    ASSISTANT = "assistant"
-
-
+@dataclass
 class ImagePublic:
-    def init(self, uri: str, width: int, height: int, prompt: Optional[str] = None):
-        self.type = ImageType.PUBLIC
-        self.prompt = prompt
-        self.uri = uri
-        self.width = width
-        self.height = height
+    uri: str
+    width: int
+    height: int
+    prompt: Optional[str] = None
+    type: ImageType = ImageType.PUBLIC
 
 
+@dataclass
 class ImageUriResult:
-    def init(
-        self, uri: Optional[str], width: int, height: int, prompt: Optional[str] = None
-    ):
-        self.type = ImageType.URI
-        self.prompt = prompt
-        self.uri = uri
-        self.width = width
-        self.height = height
+    uri: Optional[str]
+    width: int
+    height: int
+    prompt: Optional[str] = None
+    type: ImageType = ImageType.URI
 
 
+@dataclass
 class ImageBase64Result:
-    def init(self, base64: str, width: int, height: int, prompt: Optional[str] = None):
-        self.type = ImageType.BASE64
-        self.base64 = base64
-        self.prompt = prompt
-        self.width = width
-        self.height = height
+    base64: str
+    width: int
+    height: int
+    prompt: Optional[str] = None
+    type: ImageType = ImageType.BASE64
 
 
 ImageResult = Union[ImageBase64Result, ImageUriResult, ImagePublic]
 
 
+@dataclass
 class Thread:
-    def __init__(
-        self,
-        id: str,
-        type: str,
-        meetingId: Optional[str] = None,
-        messageId: Optional[str] = None,
-        sectionId: Optional[str] = None,
-    ):
-        self.id = id
-        self.type = type
-        self.meetingId = meetingId
-        self.messageId = messageId
-        self.sectionId = sectionId
+    id: str
+    type: str
+    meetingId: Optional[str] = None
+    messageId: Optional[str] = None
+    sectionId: Optional[str] = None
 
 
+@dataclass
 class MessageButtonBase:
-    def __init__(self, type: str):
-        self.type = type
+    type: str
 
 
+@dataclass
 class MessageButtonLink(MessageButtonBase):
-    def __init__(self, icon: MessageIcon, text: str, uri: str):
-        super().__init__("link")
-        self.icon = icon
-        self.text = text
-        self.uri = uri
+    icon: MessageIcon
+    text: str
+    uri: str
+
+    def __post_init__(self):
+        self.type = "link"
 
 
+@dataclass
 class MessageButtonText(MessageButtonBase):
-    def __init__(self, text: str, lang: Optional[UserLangT] = None):
-        super().__init__("text")
-        self.lang = lang
-        self.text = text
+    text: str
+    lang: Optional[UserLang] = None
+
+    def __post_init__(self):
+        self.type = "text"
 
 
+@dataclass
 class MessageButtonNormal(MessageButtonBase):
-    def __init__(
-        self,
-        text: str,
-        func: str,
-        params: Optional[Dict[str, Any]] = None,
-        buttonType: Optional[ButtonType] = None,
-    ):
-        super().__init__("button")
-        self.text = text
-        self.func = func
-        self.params = params
-        self.buttonType = buttonType
+    text: str
+    func: str
+    params: Optional[Dict[str, Any]] = None
+    buttonType: Optional[ButtonType] = None
+
+    def __post_init__(self):
+        self.type = "button"
 
 
 MessageButton = Union[MessageButtonNormal, MessageButtonText, MessageButtonLink]
 
 
-class CodeMessage:
-    def __init__(
-        self,
-        id: str,
-        created: int,
-        userId: str,
-        text: str,
-        isBot: bool,
-        markdown: Optional[str] = None,
-        system: Optional[bool] = None,
-        mentionUserIds: Optional[List[str]] = None,
-        lang: Optional[UserLangT] = None,
-        onlyUserIds: Optional[List[str]] = None,
-        visibility: Optional[MessageVisibility] = None,
-        color: Optional[MessageColor] = None,
-        cacheTextToSpeech: Optional[bool] = None,
-        buttons: Optional[List[MessageButton]] = None,
-        mood: Optional[Mood] = None,
-        impersonateUserId: Optional[str] = None,
-        fileIds: Optional[List[str]] = None,
-        contextFileId: Optional[str] = None,
-        thread: Optional[Thread] = None,
-    ):
-        self.id = id
-        self.created = created
-        self.userId = userId
-        self.text = text
-        self.markdown = markdown
-        self.system = system
-        self.mentionUserIds = mentionUserIds
-        self.lang = lang
-        self.onlyUserIds = onlyUserIds
-        self.visibility = visibility
-        self.color = color
-        self.isBot = isBot
-        self.cacheTextToSpeech = cacheTextToSpeech
-        self.buttons = buttons
-        self.mood = mood
-        self.impersonateUserId = impersonateUserId
-        self.fileIds = fileIds
-        self.contextFileId = contextFileId
-        self.thread = thread
+@dataclass
+class Message:
+    id: str
+    created: int
+    userId: str
+    text: str
+    isBot: bool
+    markdown: Optional[str] = None
+    system: Optional[bool] = None
+    mentionUserIds: Optional[List[str]] = None
+    lang: Optional[UserLang] = None
+    onlyUserIds: Optional[List[str]] = None
+    visibility: Optional[MessageVisibility] = None
+    color: Optional[MessageColor] = None
+    buttons: Optional[List[MessageButton]] = None
+    mood: Optional[Mood] = None
+    impersonateUserId: Optional[str] = None
+    fileIds: Optional[List[str]] = None
+    contextFileId: Optional[str] = None
+    thread: Optional[Thread] = None
 
 
-CodeTextGenMessageContent = Union[str, ImageUriResult, ImageBase64Result]
+TextGenMessageContent = Union[str, ImageUriResult, ImageBase64Result]
 
 
-class CodeTextGenMessage:
-    def __init__(
-        self,
-        role: CodeTextGenRole,
-        content: Union[str, List[CodeTextGenMessageContent]],
-    ):
-        self.role = role
-        self.content = content
+@dataclass
+class TextGenMessage:
+    role: TextGenRole
+    content: Union[str, List[TextGenMessageContent]]
 
 
-class CodeTextGenTool:
-    def __init__(self, name: str, description: str, parameters: Dict[str, Any] = None):
-        self.name = name
-        self.description = description
-        self.parameters = parameters
+@dataclass
+class TextGenTool:
+    name: str
+    description: str
+    parameters: Optional[Dict[str, Any]] = None
 
 
-class CodeUser:
-    def __init__(
-        self,
-        userId: str,
-        name: str,
-        bio: str,
-        avatar: Avatar,
-        voiceId: Optional[str],
-        birthday: Optional[int],
-        type: str,
-        lang: UserLangT,
-        timezone: Timezone,
-        calendly: Optional[str] = None,
-    ):
-        self.userId = userId
-        self.name = name
-        self.bio = bio
-        self.avatar = avatar
-        self.voiceId = voiceId
-        self.birthday = birthday
-        self.type = type
-        self.lang = lang
-        self.calendly = calendly
-        self.timezone = timezone
+@dataclass
+class Avatar:
+    image: ImageResult
+    background: Optional[ImageResult]
 
 
-class CodeUserPrivate:
-    def __init__(self, userId: str, calendly: Optional[str], email: Optional[str]):
-        self.userId = userId
-        self.calendly = calendly
-        self.email = email
+@dataclass
+class User:
+    id: str
+    name: str
+    bio: str
+    avatar: Avatar
+    voiceId: Optional[str]
+    birthday: Optional[int]
+    type: str
+    lang: UserLang
+    timezone: Timezone
+    calendly: Optional[str] = None
 
 
-class CodeLiveUser:
-    def __init__(
-        self,
-        userId: str,
-        emotion: Optional[Emotion],
-        image: Optional[ImageBase64Result],
-    ):
-        self.userId = userId
-        self.emotion = emotion
-        self.image = image
+@dataclass
+class UserPrivate:
+    id: str
+    calendly: Optional[str]
+    email: Optional[str]
 
 
-class CodeBot:
-    def __init__(self, userId: str, name: str, bio: str, tags: List[BotTag]):
-        self.userId = userId
-        self.name = name
-        self.bio = bio
-        self.tags = tags
+@dataclass
+class Emotion:
+    neutral: int
+    happy: int
+    sad: int
+    angry: int
+    fearful: int
+    disgusted: int
+    surprised: int
 
 
-class CodeFileCommon:
-    def __init__(
-        self,
-        id: str,
-        userId: str,
-        type: FileType,
-        title: str,
-        text: Optional[str],
-        **kwargs: Any
-    ):
-        self.id = id
-        self.userId = userId
-        self.type = type
-        self.title = title
-        self.text = text
-        for key, value in kwargs.items():
+@dataclass
+class LiveUser:
+    id: str
+    emotion: Optional[Emotion]
+    image: Optional[ImageBase64Result]
+
+
+@dataclass
+class Bot:
+    id: str
+    name: str
+    bio: str
+    tags: List[BotTag]
+
+
+@dataclass
+class FileCommon:
+    id: str
+    userId: str
+    type: FileType
+    title: str
+    text: Optional[str]
+
+    def __post_init__(self):
+        for key, value in self.extra_fields.items():
             setattr(self, key, value)
 
 
-class CodeFileMarkdown(CodeFileCommon):
-    def __init__(
-        self,
-        id: str,
-        userId: str,
-        title: str,
-        markdown: str,
-        text: Optional[str] = None,
-    ):
-        super().__init__(id, userId, "markdown", title, text)
-        self.markdown = markdown
+@dataclass
+class FileMarkdown(FileCommon):
+    markdown: str
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.type = "markdown"
 
 
-class CodeFileImage(CodeFileCommon):
-    def __init__(
-        self,
-        id: str,
-        userId: str,
-        title: str,
-        image: ImagePublic,
-        thumbnail: ImagePublic,
-        text: Optional[str] = None,
-    ):
-        super().__init__(id, userId, "image", title, text)
-        self.image = image
-        self.thumbnail = thumbnail
+@dataclass
+class FileImage(FileCommon):
+    image: ImagePublic
+    thumbnail: ImagePublic
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.type = "image"
 
 
-class CodeFilePdf(CodeFileCommon):
-    def __init__(
-        self, id: str, userId: str, title: str, uri: str, text: Optional[str] = None
-    ):
-        super().__init__(id, userId, "pdf", title, text)
-        self.uri = uri
+@dataclass
+class FilePdf(FileCommon):
+    uri: str
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.type = "pdf"
 
 
-class CodeFileLink(CodeFileCommon):
-    def __init__(
-        self, id: str, userId: str, title: str, uri: str, text: Optional[str] = None
-    ):
-        super().__init__(id, userId, "link", title, text)
-        self.uri = uri
+@dataclass
+class FileLink(FileCommon):
+    uri: str
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.type = "link"
 
 
-class CodeFileBot(CodeFileCommon):
-    def __init__(self, id: str, userId: str, title: str, text: Optional[str] = None):
-        super().__init__(id, userId, "bot", title, text)
+@dataclass
+class FileBot(FileCommon):
+    def __post_init__(self):
+        super().__post_init__()
+        self.type = "bot"
 
 
-CodeFile = Union[
-    CodeFileMarkdown, CodeFileBot, CodeFileImage, CodeFilePdf, CodeFileLink
-]
+File = Union[FileMarkdown, FileBot, FileImage, FilePdf, FileLink]
 
 
-class CodeMeeting:
-    def __init__(self, id: str, timezone: Timezone):
-        self.id = id
-        self.timezone = timezone
+@dataclass
+class Meeting:
+    id: str
+    timezone: "Timezone"
 
 
-class CodeConversation:
-    def __init__(
-        self, id: str, type: ConversationType, title: str, fileId: Optional[str] = None
-    ):
-        self.id = id
-        self.type = type
-        self.title = title
-        self.fileId = fileId
+@dataclass
+class Conversation:
+    id: str
+    type: "ConversationType"
+    title: str
+    fileId: Optional[str] = None
 
 
-class MessageDirectProtocol(Protocol):
-    async def __call__(self, message: CodeMessage) -> None: ...
+@dataclass
+class NewsArticle:
+    title: str
+    content: str
+    uri: Optional[str]
 
 
-class MessageAddProtocol(Protocol):
-    async def __call__(self, message: CodeMessage) -> None: ...
+@dataclass
+class FileChunk:
+    fileId: str
+    text: str
 
 
-class BotHourlyProtocol(Protocol):
-    async def __call__(self, hour: int) -> None: ...
+@dataclass
+class SearchArticle:
+    title: str
+    synopsis: str
+    uri: Optional[str]
 
 
-class FileCreateProtocol(Protocol):
-    async def __call__(self, file: CodeFile) -> None: ...
+class ConversationContentType(StrEnum):
+    FILE = "file"
+    URI = "uri"
 
 
-class ConversationHourlyProtocol(Protocol):
-    async def __call__(self, hour: int) -> None: ...
+@dataclass
+class ConversationFileContent:
+    fileId: str
+    disabled: bool
+    type: ConversationContentType = ConversationContentType.FILE
 
 
-class ConversationStartProtocol(Protocol):
-    async def __call__(self, conversation: CodeConversation) -> None: ...
+@dataclass
+class ConversationUriContent:
+    uri: str
+    type: ConversationContentType = ConversationContentType.URI
 
 
-class ConversationUserAddProtocol(Protocol):
-    async def __call__(
-        self, user: CodeUser, conversation: CodeConversation
-    ) -> None: ...
+ConversationContent = Union[ConversationFileContent, ConversationUriContent]
 
 
-class MeetingStartProtocol(Protocol):
-    async def __call__(
-        self, conversation: CodeConversation, meeting: CodeMeeting
-    ) -> None: ...
+class FileSectionType(StrEnum):
+    MARKDOWN = "markdown"
 
 
-class MeetingStopProtocol(Protocol):
-    async def __call__(
-        self, conversation: CodeConversation, meeting: CodeMeeting
-    ) -> None: ...
+@dataclass
+class FileSectionCommon:
+    id: str
+    type: FileSectionType
+    title: Optional[str] = None
+    thread: Optional[bool] = None
 
 
-class MeetingUserVisibleProtocol(Protocol):
-    async def __call__(
-        self, conversation: CodeConversation, meeting: CodeMeeting, user: CodeUser
-    ) -> None: ...
+@dataclass
+class FileSectionMarkdown(FileSectionCommon):
+    markdown: Optional[str] = None
+    placeholder: Optional[str] = None
+    editable: Optional[bool] = None
+    type: str = FileSectionType.MARKDOWN
 
 
-class ThreadStopProtocol(Protocol):
-    async def __call__(self, thread: Thread) -> None: ...
+FileSection = Union[FileSectionMarkdown]
 
 
-class InputChangedProtocol(Protocol):
-    async def __call__(self, user_id: str, text: str) -> None: ...
+@dataclass
+class Event:
+    id: str
+    start: int
+    end: int
