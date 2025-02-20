@@ -25,7 +25,7 @@ port = os.environ.get("PORT", 6000)
 app_host = os.environ.get("APP_HOST", "localhost:3000")
 app_key = "567686a8-6fa1-4c34-88dc-4550154bbab7"
 
-print("STARTING", port)
+print("STARTING", port, __name__)
 
 bots: dict[str, Bot] = {}
 
@@ -183,5 +183,4 @@ sched = BackgroundScheduler()
 sched.start()
 sched.add_job(cron, "interval", seconds=30)
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=port)
+uvicorn.run(app, host="0.0.0.0", port=port)
