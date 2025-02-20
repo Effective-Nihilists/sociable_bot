@@ -1,6 +1,6 @@
 from dataclasses import asdict, is_dataclass
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 import sys
 import json
 import socketio
@@ -27,14 +27,25 @@ context = {
 }
 
 
-# @sio.event
-# def connect():
-#     print("[BOT] connection established")
+@sio.event
+def connect():
+    old_print("[BOT] connection established")
 
 
-# @sio.event
-# def disconnect():
-#     print("[BOT] disconnected from server")
+@sio.event
+def disconnect():
+    old_print("[BOT] disconnected from server")
+
+
+@sio.event
+def callback(msg):
+    funcName = msg.get("func")
+    funcParams = msg.get("params")
+    func = funcs.get(funcName)
+    if func is not None:
+        return func(**funcParams)
+    else:
+        return None
 
 
 def start():
@@ -45,9 +56,14 @@ def start():
         if len(message) > 0:
             # print("[MESSAGE]", message)
             msg = json.loads(message)
-            func = funcs.get(msg.get("func"))
+            funcName = msg.get("func")
+            funcParams = msg.get("params")
+            func = funcs.get(funcName)
             if func is not None:
-                func(**msg.get("params"))
+                if funcName == "messageDirect":
+                    func(message=Message(**funcParams.get("message")))
+                else:
+                    func(**funcParams)
 
 
 def call(op: str, params: dict) -> dict:
@@ -251,7 +267,9 @@ def text_gen(
             "frequencyPenalty": frequency_penalty,
             "presencePenalty": presence_penalty,
             "repetitionPenalty": repetition_penalty,
-            "tools": tools,
+            "tools": (
+                list(map(lambda x: asdict(x), tools)) if tools is not None else None
+            ),
             "includeFiles": include_files,
             "json": json,
         },

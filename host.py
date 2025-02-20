@@ -158,7 +158,7 @@ async def bot_everything(
         last_message=time.time(),
     )
 
-    # os.remove(python_file)
+    os.remove(python_file)
 
     return "OK"
 

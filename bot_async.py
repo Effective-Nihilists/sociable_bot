@@ -28,14 +28,25 @@ context = {
 }
 
 
-# @sio.event
-# async def connect():
-#     print("[BOT] connection established")
+@sio.event
+async def connect():
+    old_print("[BOT] connection established")
 
 
-# @sio.event
-# async def disconnect():
-#     print("[BOT] disconnected from server")
+@sio.event
+async def disconnect():
+    old_print("[BOT] disconnected from server")
+
+
+@sio.event
+async def callback(msg):
+    funcName = msg.get("func")
+    funcParams = msg.get("params")
+    func = funcs.get(funcName)
+    if func is not None:
+        return await func(**funcParams)
+    else:
+        return None
 
 
 async def main():
