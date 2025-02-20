@@ -175,13 +175,11 @@ def cron():
             del bots[key]
 
 
-sched = BackgroundScheduler()
-sched.start()
-sched.add_job(cron, "interval", seconds=30)
+if __name__ == "__main__":
+    print("Starting background scheduler")
+    sched = BackgroundScheduler()
+    sched.start()
+    sched.add_job(cron, "interval", seconds=30)
 
-print("uvicorn start")
-try:
-    if __name__ == "__main__":
-        uvicorn.run("host:app", host="0.0.0.0", port=port)
-except Exception as e:
-    print(e.message)
+    print("Starting uvicorn")
+    uvicorn.run("host:app", host="0.0.0.0", port=port)
