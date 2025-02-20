@@ -13,9 +13,8 @@ from bot_types import *
 #     print("No arguments provided.")
 
 app_host = os.environ.get("APP_HOST", "localhost:3000")
-port = sys.argv[1]
-token = sys.argv[2]
-data = json.loads(sys.argv[3])
+token = sys.argv[1]
+data = json.loads(sys.argv[2])
 params = data.get("params")
 sio = socketio.Client()
 context = {

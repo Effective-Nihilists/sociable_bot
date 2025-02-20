@@ -25,6 +25,8 @@ port = os.environ.get("PORT", 6000)
 app_host = os.environ.get("APP_HOST", "localhost:3000")
 app_key = "567686a8-6fa1-4c34-88dc-4550154bbab7"
 
+print("STARTING", port)
+
 bots: dict[str, Bot] = {}
 
 app = FastAPI()
@@ -109,7 +111,6 @@ async def bot_everything(
         [
             "python",
             python_file,
-            str(port),
             output.get("token"),
             json.dumps(
                 {
