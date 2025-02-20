@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import dataclass
 import os
 import time
 from typing import Optional
@@ -11,21 +12,17 @@ from fastapi import FastAPI, Request
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
+@dataclass
 class Bot:
-    def __init__(
-        self,
-        process: Popen,
-        last_message: float,
-    ):
-        self.process = process
-        self.last_message = last_message
+    process: Popen
+    last_message: float
 
 
 port = os.environ.get("PORT", 6000)
 app_host = os.environ.get("APP_HOST", "localhost:3000")
 app_key = "567686a8-6fa1-4c34-88dc-4550154bbab7"
 
-print("STARTING", port, __name__)
+print("STARTING", port, __name__, app_host)
 
 bots: dict[str, Bot] = {}
 
@@ -183,4 +180,8 @@ sched = BackgroundScheduler()
 sched.start()
 sched.add_job(cron, "interval", seconds=30)
 
-uvicorn.run(app, host="0.0.0.0", port=port)
+print("uvicorn start")
+try:
+    uvicorn.run(app, host="0.0.0.0", port=port)
+except Exception as e:
+    print(e.message)
