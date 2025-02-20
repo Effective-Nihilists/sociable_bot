@@ -16,6 +16,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 class Bot:
     process: Popen
     last_message: float
+    python_file: str
 
 
 port = os.environ.get("PORT", 6000)
@@ -82,6 +83,7 @@ async def bot_everything(
 
     if bot is not None:
         bot.process.kill()
+        os.remove(bot.python_file)
         del bots[key]
 
     # Get bot python code and JWT and bot params
@@ -151,12 +153,7 @@ async def bot_everything(
     process.stdin.write(body)
     process.stdin.write(b"\n")
 
-    bots[key] = Bot(
-        process=process,
-        last_message=time.time(),
-    )
-
-    os.remove(python_file)
+    bots[key] = Bot(process=process, last_message=time.time(), python_file=python_file)
 
     return "OK"
 
@@ -167,12 +164,14 @@ def cron():
         # Every 30 seconds remove dead processes
         if bot.process.poll() is not None:
             print(f"[BOT] {key} died")
+            os.remove(bot.python_file)
             del bots[key]
 
         # If no bot message in last 5 minutes then kill the process
         if now - bot.last_message > 5 * 60:
             print(f"[BOT] {key} inactive")
             bot.process.kill()
+            os.remove(bot.python_file)
             del bots[key]
 
 
@@ -182,6 +181,7 @@ sched.add_job(cron, "interval", seconds=30)
 
 print("uvicorn start")
 try:
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    if __name__ == "__main__":
+        uvicorn.run("host:app", host="0.0.0.0", port=port)
 except Exception as e:
     print(e.message)
