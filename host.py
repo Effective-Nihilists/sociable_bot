@@ -1,8 +1,9 @@
 import asyncio
 from dataclasses import dataclass
 import os
+import subprocess
 import time
-from typing import Optional
+from typing import Dict, Optional
 import uvicorn
 import requests
 import json
@@ -16,7 +17,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 class Bot:
     process: Popen
     last_message: float
-    python_file: str
+    path: str
 
 
 port = int(os.environ.get("PORT", 6000))
@@ -83,7 +84,7 @@ async def bot_everything(
 
     if bot is not None:
         bot.process.kill()
-        os.remove(bot.python_file)
+        os.rmdir(bot.path)
         del bots[key]
 
     # Get bot python code and JWT and bot params
@@ -102,14 +103,15 @@ async def bot_everything(
     output = response.json()
     # print("Response:", json.dumps(output, indent=4))
 
-    python_file = f"{str(uuid.uuid4())}.py"
-    with open(python_file, "w") as f:
-        f.write(output.get("codePython"))
+    bot_path = f"/tmp/{str(uuid.uuid4())}"
+    print("[BOT] path", bot_path)
+    source_export(output.get("source"), bot_path)
+    pip_install(bot_path)
 
     process = Popen(
         [
-            "python",
-            python_file,
+            f"{bot_path}/venv/bin/python",
+            "main.py",
             output.get("token"),
             json.dumps(
                 {
@@ -125,6 +127,7 @@ async def bot_everything(
         bufsize=0,
         stdin=PIPE,
         stderr=PIPE,
+        cwd=bot_path,
     )
 
     def send_error_log():
@@ -153,9 +156,27 @@ async def bot_everything(
     process.stdin.write(body)
     process.stdin.write(b"\n")
 
-    bots[key] = Bot(process=process, last_message=time.time(), python_file=python_file)
+    bots[key] = Bot(process=process, last_message=time.time(), path=bot_path)
 
     return "OK"
+
+
+def source_export(source: dict[str, dict], path: str):
+    os.mkdir(path)
+    for key, value in source.items():
+        if "text" in value:
+            with open(f"{path}/{key}", "w") as f:
+                f.write(value["text"])
+        else:
+            source_export(value, f"{path}/{key}")
+
+
+def pip_install(path: str):
+    subprocess.call(["python", "-m", "venv", f"{path}/venv"])
+    subprocess.call(
+        [f"{path}/venv/bin/python", "-m", "pip", "install", "-r", "requirements.txt"],
+        cwd=path,
+    )
 
 
 def cron():
@@ -164,14 +185,14 @@ def cron():
         # Every 30 seconds remove dead processes
         if bot.process.poll() is not None:
             print(f"[BOT] {key} died")
-            os.remove(bot.python_file)
+            os.rmdir(bot.path)
             del bots[key]
 
         # If no bot message in last 5 minutes then kill the process
         if now - bot.last_message > 5 * 60:
             print(f"[BOT] {key} inactive")
             bot.process.kill()
-            os.remove(bot.python_file)
+            os.rmdir(bot.path)
             del bots[key]
 
 

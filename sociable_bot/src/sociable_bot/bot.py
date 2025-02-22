@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import sys
 import json
 import socketio
-from bot_types import *
+from .bot_types import *
 
 # if len(sys.argv) > 1:
 #     arguments = sys.argv[1:]
@@ -14,15 +14,15 @@ from bot_types import *
 
 app_host = os.environ.get("APP_HOST", "localhost:3000")
 token = sys.argv[1]
-data = json.loads(sys.argv[2])
-params = data.get("params")
+json_data = json.loads(sys.argv[2])
+params = json_data.get("params")
 sio = socketio.Client()
 context = {
-    "botId": data["botId"],
-    "botCodeId": data["botCodeId"],
-    "conversationId": data["conversationId"],
-    "conversationThreadId": data["conversationThreadId"],
-    "chargeUserIds": data["chargeUserIds"],
+    "botId": json_data["botId"],
+    "botCodeId": json_data["botCodeId"],
+    "conversationId": json_data["conversationId"],
+    "conversationThreadId": json_data["conversationThreadId"],
+    "chargeUserIds": json_data["chargeUserIds"],
 }
 
 
@@ -48,12 +48,12 @@ def callback(msg):
 
 
 def start():
-    # print("[BOT] start client socket", app_url)
+    old_print("[BOT] start client socket", app_host)
     sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
     while True:
         message = sys.stdin.readline()[:-1]
         if len(message) > 0:
-            # print("[MESSAGE]", message)
+            old_print("[BOT] message", message)
             msg = json.loads(message)
             funcName = msg.get("func")
             funcParams = msg.get("params")
@@ -65,8 +65,8 @@ def start():
                     func(**funcParams)
 
 
-def call(op: str, params: dict) -> dict:
-    # print("[BOT] client socket send", op, context, params)
+def call(op: str, params: dict) -> Any:
+    old_print("[BOT] client socket send", op, context, params)
     result = sio.call(
         "call",
         {
@@ -78,7 +78,7 @@ def call(op: str, params: dict) -> dict:
         },
     )
     # print("[BOT] client socket send result", result)
-    return result.get("data")
+    return result.get("data") if result is not None else None
 
 
 def conversation(id: str) -> Optional[Conversation]:
@@ -392,7 +392,7 @@ def conversation_bots(tag: Optional[BotTag] = None) -> List[Bot]:
 def conversation_show_content(content: ConversationContent) -> None:
     call(
         "botCodeConversationShowContent",
-        content,
+        asdict(content),
     )
 
 
@@ -528,7 +528,7 @@ old_print = print
 
 def log(
     *args: list[Any],
-) -> List[Bot]:
+) -> None:
     old_print(args)
     call(
         "botCodeLog",
@@ -544,7 +544,7 @@ print = log
 
 def error(
     *args: list[Any],
-) -> List[Bot]:
+) -> None:
     call(
         "botCodeLog",
         {

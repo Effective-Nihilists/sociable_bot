@@ -79,24 +79,6 @@ class MessageIcon(StrEnum):
     SNAPCHAT = "snapchat"
 
 
-class UserLang(StrEnum):
-    AR = "ar"
-    DE = "de"
-    EN = "en"
-    ES = "es"
-    FA = "fa"
-    FR = "fr"
-    HI = "hi"
-    IT = "it"
-    JA = "ja"
-    PT = "pt"
-    RU = "ru"
-    TL = "tl"
-    TR = "tr"
-    VI = "vi"
-    ZH = "zh"
-
-
 class FileType(StrEnum):
     MARKDOWN = "markdown"
     LINK = "link"

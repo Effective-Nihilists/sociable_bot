@@ -2,7 +2,7 @@ from enum import StrEnum
 import inspect
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
-from bot_enums import *
+from .bot_enums import *
 
 funcs = {}
 
@@ -237,63 +237,16 @@ class Bot:
 
 
 @dataclass
-class FileCommon:
+class File:
     id: str
     userId: str
     type: FileType
     title: str
     text: Optional[str]
-
-    def __post_init__(self):
-        for key, value in self.extra_fields.items():
-            setattr(self, key, value)
-
-
-@dataclass
-class FileMarkdown(FileCommon):
-    markdown: str
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.type = "markdown"
-
-
-@dataclass
-class FileImage(FileCommon):
     image: ImagePublic
     thumbnail: ImagePublic
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.type = "image"
-
-
-@dataclass
-class FilePdf(FileCommon):
+    markdown: str
     uri: str
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.type = "pdf"
-
-
-@dataclass
-class FileLink(FileCommon):
-    uri: str
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.type = "link"
-
-
-@dataclass
-class FileBot(FileCommon):
-    def __post_init__(self):
-        super().__post_init__()
-        self.type = "bot"
-
-
-File = Union[FileMarkdown, FileBot, FileImage, FilePdf, FileLink]
 
 
 @dataclass
@@ -368,7 +321,7 @@ class FileSectionMarkdown(FileSectionCommon):
     markdown: Optional[str] = None
     placeholder: Optional[str] = None
     editable: Optional[bool] = None
-    type: str = FileSectionType.MARKDOWN
+    type: FileSectionType = FileSectionType.MARKDOWN
 
 
 FileSection = Union[FileSectionMarkdown]

@@ -5,7 +5,7 @@ from typing import Any, Awaitable, Dict, List, Optional, Union
 import sys
 import json
 import socketio
-from bot_types import *
+from .bot_types import *
 
 # if len(sys.argv) > 1:
 #     arguments = sys.argv[1:]
