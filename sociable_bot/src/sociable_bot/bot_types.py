@@ -2,6 +2,7 @@ from enum import StrEnum
 import inspect
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
+from dataclass_wizard import JSONWizard
 from .bot_enums import *
 
 funcs = {}
@@ -19,6 +20,7 @@ name_map = {
     "meeting_user_visible": "meetingUserVisible",
     "thread_stop": "threadStop",
     "input_changed": "inputChanged",
+    "web_page_updated": "webPageUpdated",
 }
 
 
@@ -149,21 +151,21 @@ MessageButton = Union[MessageButtonNormal, MessageButtonText, MessageButtonLink]
 class Message:
     id: str
     created: int
-    userId: str
+    user_id: str
     text: str
-    isBot: bool
+    is_bot: bool
     markdown: Optional[str] = None
     system: Optional[bool] = None
-    mentionUserIds: Optional[List[str]] = None
+    mention_user_ids: Optional[List[str]] = None
     lang: Optional[UserLang] = None
-    onlyUserIds: Optional[List[str]] = None
+    only_user_ids: Optional[List[str]] = None
     visibility: Optional[MessageVisibility] = None
     color: Optional[MessageColor] = None
     buttons: Optional[List[MessageButton]] = None
     mood: Optional[Mood] = None
-    impersonateUserId: Optional[str] = None
-    fileIds: Optional[List[str]] = None
-    contextFileId: Optional[str] = None
+    impersonate_user_id: Optional[str] = None
+    file_ids: Optional[List[str]] = None
+    context_file_id: Optional[str] = None
     thread: Optional[Thread] = None
 
 
@@ -332,3 +334,10 @@ class Event:
     id: str
     start: int
     end: int
+
+
+@dataclass
+class WebPageData:
+    html: str
+    url: str
+    title: str

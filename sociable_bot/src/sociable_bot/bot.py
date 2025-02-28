@@ -5,6 +5,8 @@ import sys
 import json
 import socketio
 from .bot_types import *
+import re
+import typing
 
 # if len(sys.argv) > 1:
 #     arguments = sys.argv[1:]
@@ -47,6 +49,64 @@ def callback(msg):
         return None
 
 
+def message_direct_arg_map(dict: Dict[Any, Any]):
+    return {"message": Message(**dict["message"])}
+
+
+arg_map: Dict[str, Callable[[Dict[Any, Any]], Dict[Any, Any]]] = {
+    "messageDirect": message_direct_arg_map,
+    # "message_add": "messageAdd",
+    # "bot_hourly": "botHourly",
+    # "file_create": "fileCreate",
+    # "conversation_hourly": "conversationHourly",
+    # "conversation_start": "conversationStart",
+    # "conversation_user_add": "conversationUserAdd",
+    # "meeting_start": "meetingStart",
+    # "meeting_stop": "meetingStop",
+    # "meeting_user_visible": "meetingUserVisible",
+    # "thread_stop": "threadStop",
+    # "input_changed": "inputChanged",
+    # "webpageUpdated": webpage_updated_arg_map,
+}
+
+
+def convert_keys_to_snake_case(data):
+    if isinstance(data, dict):
+        new_data = {}
+        for key, value in data.items():
+            new_key = re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower()
+            new_data[new_key] = convert_keys_to_snake_case(value)
+        return new_data
+    elif isinstance(data, list):
+        return [convert_keys_to_snake_case(item) for item in data]
+    else:
+        return data
+
+
+def to_camel_case(snake_str):
+    return "".join(x.capitalize() for x in snake_str.lower().split("_"))
+
+
+def to_lower_camel_case(snake_str):
+    # We capitalize the first letter of each component except the first one
+    # with the 'capitalize' method and join them together.
+    camel_string = to_camel_case(snake_str)
+    return snake_str[0].lower() + camel_string[1:]
+
+
+def convert_keys_to_camel_case(data):
+    if isinstance(data, dict):
+        new_data = {}
+        for key, value in data.items():
+            new_key = to_lower_camel_case(key)
+            new_data[new_key] = convert_keys_to_snake_case(value)
+        return new_data
+    elif isinstance(data, list):
+        return [convert_keys_to_snake_case(item) for item in data]
+    else:
+        return data
+
+
 def start():
     old_print("[BOT] start client socket", app_host)
     sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
@@ -54,13 +114,14 @@ def start():
         message = sys.stdin.readline()[:-1]
         if len(message) > 0:
             old_print("[BOT] message", message)
-            msg = json.loads(message)
+            msg = typing.cast(Any, convert_keys_to_snake_case(json.loads(message)))
             funcName = msg.get("func")
             funcParams = msg.get("params")
             func = funcs.get(funcName)
             if func is not None:
-                if funcName == "messageDirect":
-                    func(message=Message(**funcParams.get("message")))
+                arg_mapper = arg_map.get(funcName)
+                if arg_mapper is not None:
+                    func(**arg_mapper(funcParams))
                 else:
                     func(**funcParams)
 
@@ -73,12 +134,14 @@ def call(op: str, params: dict) -> Any:
             "op": op,
             "input": {
                 "context": context,
-                "params": params,
+                "params": convert_keys_to_camel_case(params),
             },
         },
     )
     # print("[BOT] client socket send result", result)
-    return result.get("data") if result is not None else None
+    return (
+        convert_keys_to_snake_case(result.get("data")) if result is not None else None
+    )
 
 
 def conversation(id: str) -> Optional[Conversation]:
@@ -521,6 +584,15 @@ def bot_search(query: str, limit: Optional[int] = None) -> List[Bot]:
     )
 
     return list(map(lambda m: Bot(**m), result))
+
+
+def web_page_get(session_id: str) -> WebPageData:
+    result = call(
+        "botCodeWebPageGet",
+        {"session_id": session_id},
+    )
+
+    return WebPageData(**result)
 
 
 old_print = print

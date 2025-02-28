@@ -11,6 +11,7 @@ import uuid
 from subprocess import Popen, PIPE
 from fastapi import FastAPI, Request
 from apscheduler.schedulers.background import BackgroundScheduler
+import shutil
 
 
 @dataclass
@@ -84,7 +85,7 @@ async def bot_everything(
 
     if bot is not None:
         bot.process.kill()
-        os.rmdir(bot.path)
+        shutil.rmtree(bot.path, ignore_errors=True)
         del bots[key]
 
     # Get bot python code and JWT and bot params
@@ -185,14 +186,14 @@ def cron():
         # Every 30 seconds remove dead processes
         if bot.process.poll() is not None:
             print(f"[BOT] {key} died")
-            os.rmdir(bot.path)
+            shutil.rmtree(bot.path, ignore_errors=True)
             del bots[key]
 
         # If no bot message in last 5 minutes then kill the process
         if now - bot.last_message > 5 * 60:
             print(f"[BOT] {key} inactive")
             bot.process.kill()
-            os.rmdir(bot.path)
+            shutil.rmtree(bot.path, ignore_errors=True)
             del bots[key]
 
 

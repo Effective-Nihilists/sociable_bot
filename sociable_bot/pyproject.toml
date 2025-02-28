@@ -1,6 +1,6 @@
 [project]
 name = "sociable_bot"
-version = "0.0.9"
+version = "0.0.15"
 authors = [
   { name="Justin Mann", email="justin.mann@gmail.com" },
 ]
@@ -15,7 +15,8 @@ license = { file = "LICENSE.txt" }
 dependencies = [
     "python-socketio",
     "websocket-client",
-    "requests"
+    "requests",
+    "dataclass_wizard"
 ]
 
 [project.urls]
