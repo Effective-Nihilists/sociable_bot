@@ -3,3 +3,4 @@ __pycache__
 .venv
 sociable_bot/dist
 sociable_bot/src/sociable_bot.egg-info
+sociable_bot/docs/build

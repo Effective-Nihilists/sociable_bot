@@ -15,17 +15,9 @@ import typing
 #     print("No arguments provided.")
 
 app_host = os.environ.get("APP_HOST", "localhost:3000")
-token = sys.argv[1]
-json_data = json.loads(sys.argv[2])
-params = json_data.get("params")
 sio = socketio.Client()
-context = {
-    "botId": json_data["botId"],
-    "botCodeId": json_data["botCodeId"],
-    "conversationId": json_data["conversationId"],
-    "conversationThreadId": json_data["conversationThreadId"],
-    "chargeUserIds": json_data["chargeUserIds"],
-}
+bot_params = {}
+bot_context = {}
 
 
 @sio.event
@@ -108,6 +100,27 @@ def convert_keys_to_camel_case(data):
 
 
 def start():
+    """
+    Start your bot, this runs the event loop so your bot can receive calls
+    """
+
+    global bot_params, bot_context
+
+    token = sys.argv[1] if len(sys.argv) > 2 else None
+    json_data = json.loads(sys.argv[2]) if len(sys.argv) > 2 else None
+    bot_params = json_data.get("params") if json_data is not None else None
+    bot_context = (
+        {
+            "botId": json_data["botId"],
+            "botCodeId": json_data["botCodeId"],
+            "conversationId": json_data["conversationId"],
+            "conversationThreadId": json_data["conversationThreadId"],
+            "chargeUserIds": json_data["chargeUserIds"],
+        }
+        if json_data is not None
+        else None
+    )
+
     old_print("[BOT] start client socket", app_host)
     sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
     while True:
@@ -127,13 +140,13 @@ def start():
 
 
 def call(op: str, params: dict) -> Any:
-    old_print("[BOT] client socket send", op, context, params)
+    old_print("[BOT] client socket send", op, bot_context, params)
     result = sio.call(
         "call",
         {
             "op": op,
             "input": {
-                "context": context,
+                "context": bot_context,
                 "params": convert_keys_to_camel_case(params),
             },
         },
@@ -145,6 +158,9 @@ def call(op: str, params: dict) -> Any:
 
 
 def conversation(id: str) -> Optional[Conversation]:
+    """
+    Get conversation
+    """
     result = call(
         "botCodeConversationGet",
         {
@@ -155,6 +171,9 @@ def conversation(id: str) -> Optional[Conversation]:
 
 
 def user(id: str) -> Optional[User]:
+    """
+    Get user
+    """
     result = call(
         "botCodeUserGet",
         {
@@ -165,6 +184,9 @@ def user(id: str) -> Optional[User]:
 
 
 def user_private(id: str) -> Optional[UserPrivate]:
+    """
+    Get user private
+    """
     result = call(
         "botCodeUserPrivateGet",
         {
@@ -175,6 +197,9 @@ def user_private(id: str) -> Optional[UserPrivate]:
 
 
 def live_user(id: str) -> Optional[LiveUser]:
+    """
+    Get live user
+    """
     result = call(
         "botCodeLiveUserGet",
         {
@@ -185,6 +210,9 @@ def live_user(id: str) -> Optional[LiveUser]:
 
 
 def bot(id: str) -> Optional[Bot]:
+    """
+    Get bot
+    """
     result = call(
         "botCodeBotGet",
         {
@@ -195,6 +223,9 @@ def bot(id: str) -> Optional[Bot]:
 
 
 def bot_owners(id: str) -> List[str]:
+    """
+    Get owners of a bot
+    """
     return call(
         "botCodeBotOwnersGet",
         {"id": id},
@@ -202,6 +233,9 @@ def bot_owners(id: str) -> List[str]:
 
 
 def message_typing() -> None:
+    """
+    Show a typing indicator in the active conversation
+    """
     call(
         "botCodeMessageTyping",
         {},
@@ -224,6 +258,9 @@ def message_send(
     files: Optional[List[File]] = None,
     thread: Optional[Thread] = None,
 ) -> Message:
+    """
+    Send a message to the active conversation
+    """
     return Message(
         **call(
             "botCodeMessageSend",
@@ -250,6 +287,9 @@ def message_send(
 def message_edit(
     id: str, text: Optional[str] = None, markdown: Optional[str] = None
 ) -> Message:
+    """
+    Edit an existing message
+    """
     return Message(
         **call(
             "botCodeMessageEdit",
@@ -265,6 +305,9 @@ def message_edit(
 def messages_to_text(
     messages: List[Message], strip_names: Optional[bool] = None
 ) -> str:
+    """
+    Convert a list of messages into string, useful if you need to add your conversation history to an LLM prompt
+    """
     return call(
         "botCodeMessagesToText",
         {
@@ -281,6 +324,9 @@ def message_history(
     include_hidden: Optional[bool] = None,
     thread_id: Optional[str] = None,
 ) -> List[Message]:
+    """
+    Get messages from the active conversation
+    """
     result = call(
         "botCodeMessageHistory",
         {
@@ -311,6 +357,9 @@ def text_gen(
     include_files: Optional[bool] = None,
     json: Optional[Dict[str, Any]] = None,
 ) -> str:
+    """
+    Generate text using the specified model (LLM)
+    """
     return call(
         "botCodeTextGen",
         {
@@ -344,6 +393,9 @@ def query_files(
     catalog_ids: Optional[List[str]] = None,
     limit: Optional[int] = None,
 ) -> List[FileChunk]:
+    """
+    Get files based on semantic search using the query
+    """
     result = call(
         "botCodeQueryFiles",
         {
@@ -360,6 +412,9 @@ def query_files(
 def query_news(
     query: str, created: Optional[int] = None, limit: Optional[int] = None
 ) -> List[NewsArticle]:
+    """
+    Get news based on semantic search using the query
+    """
     result = call(
         "botCodeQueryNews",
         {
@@ -382,6 +437,9 @@ def image_gen(
     image: Optional[ImageResult] = None,
     image_strength: Optional[float] = None,
 ) -> Optional[ImageBase64Result]:
+    """
+    Generate an image using specified model
+    """
     result = call(
         "botCodeImageGen",
         {
@@ -399,6 +457,9 @@ def image_gen(
 
 
 def google_search(query: str) -> List[SearchArticle]:
+    """
+    Google search
+    """
     result = call(
         "botCodeGoogleSearch",
         {
@@ -417,6 +478,9 @@ def email_send(
     markdown: Optional[str] = None,
     file_id: Optional[str] = None,
 ) -> None:
+    """
+    Send email
+    """
     call(
         "botCodeEmailSend",
         {
@@ -433,6 +497,9 @@ def email_send(
 def conversation_users(
     type: Optional[str] = None, role: Optional[str] = None
 ) -> List[User]:
+    """
+    Get users for the active conversation
+    """
     result = call(
         "botCodeConversationUsers",
         {"type": type, "role": role},
@@ -442,6 +509,9 @@ def conversation_users(
 
 
 def conversation_bots(tag: Optional[BotTag] = None) -> List[Bot]:
+    """
+    Get bots for the active conversation
+    """
     result = call(
         "botCodeConversationBots",
         {
@@ -452,7 +522,10 @@ def conversation_bots(tag: Optional[BotTag] = None) -> List[Bot]:
     return list(map(lambda m: Bot(**m), result))
 
 
-def conversation_show_content(content: ConversationContent) -> None:
+def conversation_content_show(content: ConversationContent) -> None:
+    """
+    Show content in the active conversation
+    """
     call(
         "botCodeConversationShowContent",
         asdict(content),
@@ -462,6 +535,9 @@ def conversation_show_content(content: ConversationContent) -> None:
 def conversation_show_buttons(
     user_id: Optional[str] = None, buttons: Optional[List[MessageButton]] = None
 ) -> None:
+    """
+    Show buttons in the active conversation
+    """
     call(
         "botCodeConversationShowButtons",
         {
@@ -469,17 +545,6 @@ def conversation_show_buttons(
             "buttons": buttons,
         },
     )
-
-
-def conversation_participants(type: Optional[str] = None) -> List[User]:
-    result = call(
-        "botCodeConversationParticipants",
-        {
-            "type": type,
-        },
-    )
-
-    return list(map(lambda m: User(**m), result))
 
 
 def file_create(
@@ -495,6 +560,9 @@ def file_create(
     add_to_feed: Optional[bool] = None,
     send_notification: Optional[bool] = None,
 ) -> File:
+    """
+    Create file
+    """
     return File(
         **call(
             "botCodeFileCreate",
@@ -521,6 +589,9 @@ def file_update(
     title: Optional[str] = None,
     thumbnail: Optional[ImageResult] = None,
 ) -> None:
+    """
+    Update file, only supported on markdown files
+    """
     call(
         "botCodeFileUpdate",
         {
@@ -538,6 +609,9 @@ def file_to_text_gen_message(
     include_name: Optional[bool] = None,
     text: Optional[str] = None,
 ) -> TextGenMessage:
+    """
+    Convert a file to TextGenMessage, this is useful if you need to pass file into text_gen
+    """
     return TextGenMessage(
         **call(
             "botCodeFileToTextGenMessage",
@@ -551,9 +625,10 @@ def file_to_text_gen_message(
     )
 
 
-def markdown_create_image(
-    file_id: str, image: Union[ImageBase64Result, ImageUriResult]
-) -> str:
+def markdown_create_image(file_id: str, image: ImageResult) -> str:
+    """
+    Convert an image into markdown syntax, this will upload the file if it is base64
+    """
     return call(
         "botCodeMarkdownCreateImage",
         {
@@ -564,6 +639,9 @@ def markdown_create_image(
 
 
 def data_set(**kwargs) -> dict:
+    """
+    Set bot data
+    """
     return call(
         "botCodeDataSet",
         kwargs,
@@ -571,22 +649,19 @@ def data_set(**kwargs) -> dict:
 
 
 def data() -> dict:
+    """
+    Get bot data
+    """
     return call(
         "botCodeDataGet",
         {},
     )
 
 
-def bot_search(query: str, limit: Optional[int] = None) -> List[Bot]:
-    result = call(
-        "botCodeBotSearch",
-        {"query": query, "limit": limit},
-    )
-
-    return list(map(lambda m: Bot(**m), result))
-
-
 def web_page_get(session_id: str) -> WebPageData:
+    """
+    Get active web page, this only works when Sociable is being used a sidePanel in Chrome
+    """
     result = call(
         "botCodeWebPageGet",
         {"session_id": session_id},
@@ -601,6 +676,9 @@ old_print = print
 def log(
     *args: list[Any],
 ) -> None:
+    """
+    Log, this works the same as print
+    """
     old_print(args)
     call(
         "botCodeLog",
@@ -617,6 +695,9 @@ print = log
 def error(
     *args: list[Any],
 ) -> None:
+    """
+    Log an error
+    """
     call(
         "botCodeLog",
         {

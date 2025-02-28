@@ -15,8 +15,7 @@ license = { file = "LICENSE.txt" }
 dependencies = [
     "python-socketio",
     "websocket-client",
-    "requests",
-    "dataclass_wizard"
+    "requests"
 ]
 
 [project.urls]

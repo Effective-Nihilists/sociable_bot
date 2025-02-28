@@ -2,7 +2,6 @@ from enum import StrEnum
 import inspect
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
-from dataclass_wizard import JSONWizard
 from .bot_enums import *
 
 funcs = {}
@@ -25,6 +24,10 @@ name_map = {
 
 
 def export(name: str):
+    """
+    Decorator to export functions from your bot
+    """
+
     def inner(func):
         global funcs
 
