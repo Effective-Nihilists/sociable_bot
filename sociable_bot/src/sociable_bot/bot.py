@@ -1,6 +1,6 @@
 from dataclasses import asdict, is_dataclass
 import os
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Union
 import sys
 import json
 import socketio
@@ -16,8 +16,20 @@ import typing
 
 app_host = os.environ.get("APP_HOST", "localhost:3000")
 sio = socketio.Client()
-bot_params = {}
-bot_context = {}
+token = sys.argv[2] if sys.argv[1] == "bot" else None
+json_data = json.loads(sys.argv[3]) if sys.argv[1] == "bot" else None
+bot_params = json_data["params"] if json_data is not None else None
+bot_context = (
+    {
+        "botId": json_data["botId"],
+        "botCodeId": json_data["botCodeId"],
+        "conversationId": json_data["conversationId"],
+        "conversationThreadId": json_data["conversationThreadId"],
+        "chargeUserIds": json_data["chargeUserIds"],
+    }
+    if json_data is not None
+    else None
+)
 
 
 @sio.event
@@ -41,24 +53,56 @@ def callback(msg):
         return None
 
 
-def message_direct_arg_map(dict: Dict[Any, Any]):
-    return {"message": Message(**dict["message"])}
+def message_arg_map(dict: Dict[Any, Any]):
+    return {
+        "message": Message(**dict["message"]),
+        "conversation": Conversation(**dict["conversation"]),
+    }
+
+
+def conversation_arg_map(dict: Dict[Any, Any]):
+    return {
+        "conversation": Conversation(**dict["conversation"]),
+    }
+
+
+def conversation_user_arg_map(dict: Dict[Any, Any]):
+    return {
+        "user": User(**dict["user"]),
+        "conversation": Conversation(**dict["conversation"]),
+    }
+
+
+def meeting_arg_map(dict: Dict[Any, Any]):
+    return {
+        "video_call": VideoCall(**dict["meeting"]),
+        "conversation": Conversation(**dict["conversation"]),
+    }
+
+
+def live_user_visible_arg_map(dict: Dict[Any, Any]):
+    return {
+        "live_user": LiveUser(**dict["live_user"]),
+        "video_call": VideoCall(**dict["meeting"]),
+        "conversation": Conversation(**dict["conversation"]),
+    }
+
+
+def thread_arg_map(dict: Dict[Any, Any]):
+    return {
+        "thread": Thread(**dict["thread"]),
+    }
 
 
 arg_map: Dict[str, Callable[[Dict[Any, Any]], Dict[Any, Any]]] = {
-    "messageDirect": message_direct_arg_map,
-    # "message_add": "messageAdd",
-    # "bot_hourly": "botHourly",
-    # "file_create": "fileCreate",
-    # "conversation_hourly": "conversationHourly",
-    # "conversation_start": "conversationStart",
-    # "conversation_user_add": "conversationUserAdd",
-    # "meeting_start": "meetingStart",
-    # "meeting_stop": "meetingStop",
-    # "meeting_user_visible": "meetingUserVisible",
-    # "thread_stop": "threadStop",
-    # "input_changed": "inputChanged",
-    # "webpageUpdated": webpage_updated_arg_map,
+    "messageDirect": message_arg_map,
+    "messageAdd": message_arg_map,
+    "conversationStart": conversation_arg_map,
+    "conversationUserAdd": conversation_arg_map,
+    "meetingStart": meeting_arg_map,
+    "meetingStop": meeting_arg_map,
+    "meetingUserVisible": live_user_visible_arg_map,
+    "threadStop": thread_arg_map,
 }
 
 
@@ -103,26 +147,11 @@ def start():
     """
     Start your bot, this runs the event loop so your bot can receive calls
     """
-
-    global bot_params, bot_context
-
-    token = sys.argv[1] if len(sys.argv) > 2 else None
-    json_data = json.loads(sys.argv[2]) if len(sys.argv) > 2 else None
-    bot_params = json_data.get("params") if json_data is not None else None
-    bot_context = (
-        {
-            "botId": json_data["botId"],
-            "botCodeId": json_data["botCodeId"],
-            "conversationId": json_data["conversationId"],
-            "conversationThreadId": json_data["conversationThreadId"],
-            "chargeUserIds": json_data["chargeUserIds"],
-        }
-        if json_data is not None
-        else None
-    )
-
     old_print("[BOT] start client socket", app_host)
     sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
+
+    log("[BOT] params", bot_params)
+
     while True:
         message = sys.stdin.readline()[:-1]
         if len(message) > 0:
@@ -245,14 +274,15 @@ def message_typing() -> None:
 def message_send(
     id: Optional[str] = None,
     text: Optional[str] = None,
-    images: Optional[List[Union[ImageBase64Result, ImageUriResult, None]]] = None,
+    image: Optional[ImageResult] = None,
+    images: Optional[List[ImageResult]] = None,
     markdown: Optional[str] = None,
     mention_user_ids: Optional[List[str]] = None,
     only_user_ids: Optional[List[str]] = None,
     lang: Optional[UserLang] = None,
     visibility: Optional[MessageVisibility] = None,
     color: Optional[MessageColor] = None,
-    buttons: Optional[List[MessageButton]] = None,
+    buttons: Optional[List[Button]] = None,
     mood: Optional[Mood] = None,
     impersonate_user_id: Optional[str] = None,
     files: Optional[List[File]] = None,
@@ -268,13 +298,22 @@ def message_send(
                 "id": id,
                 "text": text,
                 "markdown": markdown,
-                "images": images,
+                "image": asdict(image) if image is not None else None,
+                "images": (
+                    list(map(lambda x: asdict(x), images))
+                    if images is not None
+                    else None
+                ),
                 "mentionUserIds": mention_user_ids,
                 "onlyUserIds": only_user_ids,
                 "lang": lang,
                 "visibility": visibility,
                 "color": color,
-                "buttons": buttons,
+                "buttons": (
+                    list(map(lambda x: asdict(x), buttons))
+                    if buttons is not None
+                    else None
+                ),
                 "mood": mood,
                 "impersonateUserId": impersonate_user_id,
                 "fileIds": files,
@@ -436,7 +475,7 @@ def image_gen(
     steps: Optional[int] = None,
     image: Optional[ImageResult] = None,
     image_strength: Optional[float] = None,
-) -> Optional[ImageBase64Result]:
+) -> Optional[ImageResult]:
     """
     Generate an image using specified model
     """
@@ -449,11 +488,11 @@ def image_gen(
             "size": size,
             "guidanceScale": guidance_scale,
             "steps": steps,
-            "image": image,
+            "image": asdict(image) if image is not None else None,
             "imageStrength": image_strength,
         },
     )
-    return ImageBase64Result(**result) if result is not None else None
+    return ImageResult(**result) if result is not None else None
 
 
 def google_search(query: str) -> List[SearchArticle]:
@@ -532,8 +571,8 @@ def conversation_content_show(content: ConversationContent) -> None:
     )
 
 
-def conversation_show_buttons(
-    user_id: Optional[str] = None, buttons: Optional[List[MessageButton]] = None
+def conversation_buttons_show(
+    user_id: Optional[str] = None, buttons: Optional[List[Button]] = None
 ) -> None:
     """
     Show buttons in the active conversation
@@ -542,7 +581,9 @@ def conversation_show_buttons(
         "botCodeConversationShowButtons",
         {
             "userId": user_id,
-            "buttons": buttons,
+            "buttons": (
+                list(map(lambda x: asdict(x), buttons)) if buttons is not None else None
+            ),
         },
     )
 
@@ -552,7 +593,7 @@ def file_create(
     title: str,
     markdown: Optional[str] = None,
     uri: Optional[str] = None,
-    thumbnail: Optional[Union[ImageBase64Result, ImageUriResult]] = None,
+    thumbnail: Optional[ImageResult] = None,
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
     message_send: Optional[bool] = None,
@@ -571,7 +612,7 @@ def file_create(
                 "title": title,
                 "markdown": markdown,
                 "uri": uri,
-                "thumbnail": thumbnail,
+                "thumbnail": asdict(thumbnail) if thumbnail is not None else None,
                 "lang": lang,
                 "indexable": indexable,
                 "messageSend": message_send,
@@ -598,7 +639,7 @@ def file_update(
             "id": id,
             "title": title,
             "markdown": markdown,
-            "thumbnail": thumbnail,
+            "thumbnail": asdict(thumbnail) if thumbnail is not None else None,
         },
     )
 
@@ -633,7 +674,7 @@ def markdown_create_image(file_id: str, image: ImageResult) -> str:
         "botCodeMarkdownCreateImage",
         {
             "file_id": file_id,
-            "image": image,
+            "image": asdict(image) if image is not None else None,
         },
     )
 
@@ -674,7 +715,7 @@ old_print = print
 
 
 def log(
-    *args: list[Any],
+    *args,
 ) -> None:
     """
     Log, this works the same as print
@@ -693,7 +734,7 @@ print = log
 
 
 def error(
-    *args: list[Any],
+    *args,
 ) -> None:
     """
     Log an error

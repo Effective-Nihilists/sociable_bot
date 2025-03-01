@@ -1,19 +1,13 @@
-.. Sociable Bot documentation master file, created by
-   sphinx-quickstart on Fri Feb 28 08:09:20 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Sociable Bot documentation
+Sociable Bot
 ==========================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+`Sociable <https://sociable.bot>`_ is platform for building bots. You can find demos of the advanced bot building capablities `demos <https://www.youtube.com/@sociable_app>`_. 
 
 
 .. toctree::
-   examples
-   :caption: Contents:
+   tutorial
+   concept
+   example
 
 .. toctree::
    api

@@ -14,9 +14,9 @@ name_map = {
     "conversation_hourly": "conversationHourly",
     "conversation_start": "conversationStart",
     "conversation_user_add": "conversationUserAdd",
-    "meeting_start": "meetingStart",
-    "meeting_stop": "meetingStop",
-    "meeting_user_visible": "meetingUserVisible",
+    "video_call_start": "meetingStart",
+    "video_call_stop": "meetingStop",
+    "video_call_user_visible": "meetingUserVisible",
     "thread_stop": "threadStop",
     "input_changed": "inputChanged",
     "web_page_updated": "webPageUpdated",
@@ -74,80 +74,39 @@ class ImageType(StrEnum):
 
 
 @dataclass
-class ImagePublic:
-    uri: str
+class ImageResult:
+    type: ImageType
     width: int
     height: int
+    base64: Optional[str] = None
+    uri: Optional[str] = None
     prompt: Optional[str] = None
-    type: ImageType = ImageType.PUBLIC
-
-
-@dataclass
-class ImageUriResult:
-    uri: Optional[str]
-    width: int
-    height: int
-    prompt: Optional[str] = None
-    type: ImageType = ImageType.URI
-
-
-@dataclass
-class ImageBase64Result:
-    base64: str
-    width: int
-    height: int
-    prompt: Optional[str] = None
-    type: ImageType = ImageType.BASE64
-
-
-ImageResult = Union[ImageBase64Result, ImageUriResult, ImagePublic]
 
 
 @dataclass
 class Thread:
     id: str
     type: str
-    meetingId: Optional[str] = None
-    messageId: Optional[str] = None
-    sectionId: Optional[str] = None
+    meeting_id: Optional[str] = None
+    message_id: Optional[str] = None
+    section_id: Optional[str] = None
+
+
+class ButtonType(StrEnum):
+    LINK = "link"
+    TEXT = "text"
+    BUTTON = "button"
 
 
 @dataclass
-class MessageButtonBase:
-    type: str
-
-
-@dataclass
-class MessageButtonLink(MessageButtonBase):
-    icon: MessageIcon
-    text: str
-    uri: str
-
-    def __post_init__(self):
-        self.type = "link"
-
-
-@dataclass
-class MessageButtonText(MessageButtonBase):
+class Button:
+    type: ButtonType
     text: str
     lang: Optional[UserLang] = None
-
-    def __post_init__(self):
-        self.type = "text"
-
-
-@dataclass
-class MessageButtonNormal(MessageButtonBase):
-    text: str
-    func: str
+    func: Optional[str] = None
+    uri: Optional[str] = None
     params: Optional[Dict[str, Any]] = None
-    buttonType: Optional[ButtonType] = None
-
-    def __post_init__(self):
-        self.type = "button"
-
-
-MessageButton = Union[MessageButtonNormal, MessageButtonText, MessageButtonLink]
+    mode: Optional[ButtonMode] = None
 
 
 @dataclass
@@ -164,7 +123,7 @@ class Message:
     only_user_ids: Optional[List[str]] = None
     visibility: Optional[MessageVisibility] = None
     color: Optional[MessageColor] = None
-    buttons: Optional[List[MessageButton]] = None
+    buttons: Optional[List[Button]] = None
     mood: Optional[Mood] = None
     impersonate_user_id: Optional[str] = None
     file_ids: Optional[List[str]] = None
@@ -172,7 +131,7 @@ class Message:
     thread: Optional[Thread] = None
 
 
-TextGenMessageContent = Union[str, ImageUriResult, ImageBase64Result]
+TextGenMessageContent = Union[str, ImageResult]
 
 
 @dataclass
@@ -200,7 +159,7 @@ class User:
     name: str
     bio: str
     avatar: Avatar
-    voiceId: Optional[str]
+    voice_id: Optional[str]
     birthday: Optional[int]
     type: str
     lang: UserLang
@@ -230,7 +189,7 @@ class Emotion:
 class LiveUser:
     id: str
     emotion: Optional[Emotion]
-    image: Optional[ImageBase64Result]
+    image: Optional[ImageResult]
 
 
 @dataclass
@@ -244,18 +203,18 @@ class Bot:
 @dataclass
 class File:
     id: str
-    userId: str
+    user_id: str
     type: FileType
     title: str
     text: Optional[str]
-    image: ImagePublic
-    thumbnail: ImagePublic
+    image: ImageResult
+    thumbnail: ImageResult
     markdown: str
     uri: str
 
 
 @dataclass
-class Meeting:
+class VideoCall:
     id: str
     timezone: "Timezone"
 
@@ -265,7 +224,7 @@ class Conversation:
     id: str
     type: "ConversationType"
     title: str
-    fileId: Optional[str] = None
+    file_id: Optional[str] = None
 
 
 @dataclass
@@ -294,19 +253,11 @@ class ConversationContentType(StrEnum):
 
 
 @dataclass
-class ConversationFileContent:
-    fileId: str
-    disabled: bool
-    type: ConversationContentType = ConversationContentType.FILE
-
-
-@dataclass
-class ConversationUriContent:
-    uri: str
-    type: ConversationContentType = ConversationContentType.URI
-
-
-ConversationContent = Union[ConversationFileContent, ConversationUriContent]
+class ConversationContent:
+    type: ConversationContentType
+    fileId: Optional[str] = None
+    disabled: Optional[bool] = None
+    uri: Optional[str] = None
 
 
 class FileSectionType(StrEnum):
@@ -314,22 +265,14 @@ class FileSectionType(StrEnum):
 
 
 @dataclass
-class FileSectionCommon:
+class FileSection:
     id: str
     type: FileSectionType
     title: Optional[str] = None
     thread: Optional[bool] = None
-
-
-@dataclass
-class FileSectionMarkdown(FileSectionCommon):
     markdown: Optional[str] = None
     placeholder: Optional[str] = None
     editable: Optional[bool] = None
-    type: FileSectionType = FileSectionType.MARKDOWN
-
-
-FileSection = Union[FileSectionMarkdown]
 
 
 @dataclass

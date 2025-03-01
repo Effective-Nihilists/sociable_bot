@@ -99,7 +99,7 @@ class Mood(StrEnum):
     """sleep"""
 
 
-class ButtonType(StrEnum):
+class ButtonMode(StrEnum):
     PRIMARY = "primary"
     """primary"""
     DEFAULT = "default"
@@ -167,6 +167,8 @@ class BotTag(StrEnum):
     """video"""
     CRON = "cron"
     """cron"""
+    WEB = "web"
+    """web"""
 
 
 class Timezone(StrEnum):

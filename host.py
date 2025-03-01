@@ -113,6 +113,7 @@ async def bot_everything(
         [
             f"{bot_path}/venv/bin/python",
             "main.py",
+            "bot",
             output.get("token"),
             json.dumps(
                 {

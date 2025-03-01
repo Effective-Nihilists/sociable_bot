@@ -3,4 +3,4 @@ Examples
 ==========================
 
 .. toctree::
-   hello
+   example_make_fun_of_me
