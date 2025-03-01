@@ -23,7 +23,7 @@ class Bot:
 
 port = int(os.environ.get("PORT", 6000))
 app_host = os.environ.get("APP_HOST", "localhost:3000")
-app_key = "567686a8-6fa1-4c34-88dc-4550154bbab7"
+app_key = os.environ.get("APP_KEY", "567686a8-6fa1-4c34-88dc-4550154bbab7")
 
 print("STARTING", port, __name__, app_host)
 

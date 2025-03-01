@@ -3,7 +3,6 @@ from pathlib import Path
 
 module_path = str(Path("..", "..", "src").resolve())
 sys.path.insert(0, module_path)
-print("JUSTIN", module_path)
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -29,6 +28,6 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 # html_permalinks_icon = "<span>#</span>"
 html_theme = "sphinx_rtd_theme"

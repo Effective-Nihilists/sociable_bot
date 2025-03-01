@@ -216,11 +216,11 @@ class File:
     user_id: str
     type: FileType
     title: str
-    text: Optional[str]
-    image: Optional[ImageResult]
-    thumbnail: Optional[ImageResult]
-    markdown: Optional[str]
-    uri: Optional[str]
+    text: Optional[str] = None
+    image: Optional[ImageResult] = None
+    thumbnail: Optional[ImageResult] = None
+    markdown: Optional[str] = None
+    uri: Optional[str] = None
 
 
 @dataclass

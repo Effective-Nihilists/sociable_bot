@@ -1,10 +1,10 @@
 Web Page
 ==========================
 
-Open your bot's eyes
+Let's create a bot that will complain about the news. This bot requires a new Python package dependency which is handled by updating requirements.txt file.
 
 .. warning::
-    Make sure to add the :ref:`video tag <concept_export>` to the bot
+    Make sure to add the :ref:`web tag <concept_export>` to the bot
 
 .. admonition:: main.py
 
@@ -12,34 +12,43 @@ Open your bot's eyes
         :name: code
         
         from sociable_bot import *
+        import html2text
 
-        @export("video_call_user_visible")
-        def example(live_user):
-            text = text_gen(
-                model=TextGenModel.OPENAI_GPT_4O,
-                instruction='You are funny and always making jokes.',
-                messages=[
-                    TextGenMessage(
-                        role = TextGenRole.USER,
-                        content = [
-                            live_user.image,
-                            "Describe this image"
-                        ]
-                    ),
-                ],
+        @export("web_page_updated")
+        def web_page_updated(session_id: str, title: str):
+            message_send(text = f"Viewing {title}")
+            message_typing()
+            page = web_page_get(session_id = session_id)
+            text = html2text.html2text(page.html)
+            markdown = text_gen(
+                model = TextGenModel.TOGETHER_META_LLAMA_3_70B,
+                question = f"""
+                Webpage text is below:
+                -------
+                {text}
+                -------
+
+                If this webpage is a news story, explain in detail why it is wrong
+                """
             )
-            message_send(markdown=text)
+            message_send(markdown = markdown)
+
 
         start()
 
-.. note::
-    Vision requires an image, so we trigger on event :ref:`video_call_user_visible <concept_export>` which happens when a user becomes visible. Also, sending the image to the LLM requires a more complex message format.
+.. admonition:: requirements.txt
+
+    .. code-block:: text
+        :name: requirements
+        
+        sociable_bot
+        html2text
 
 
 **Glossary**
 
-* `TextGenModel <api.html#sociable_bot.TextGenModel>`_
+* `message_typing <api.html#sociable_bot.message_typing>`_
 * `text_gen <api.html#sociable_bot.text_gen>`_
 * `message_send <api.html#sociable_bot.message_send>`_
-* `TextGenMessage <api.html#sociable_bot.TextGenMessage>`_
-* `LiveUser <api.html#sociable_bot.LiveUser>`_
+* `web_page_get <api.html#sociable_bot.web_page_get>`_
+* `TextGenModel <api.html#sociable_bot.TextGenModel>`_

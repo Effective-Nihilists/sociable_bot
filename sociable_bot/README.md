@@ -1,5 +1,6 @@
-# Example Package
+# Sociable Bot
 
-This is a simple example package. You can use
-[GitHub-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
-to write your content.
+This is a package used by bots on Sociable.
+
+Learn how to make bots:
+https://docs.sociable.bot
