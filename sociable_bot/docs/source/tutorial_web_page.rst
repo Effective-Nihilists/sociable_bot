@@ -1,4 +1,4 @@
-Vision
+Web Page
 ==========================
 
 Open your bot's eyes

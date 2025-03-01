@@ -69,8 +69,13 @@ def export(name: str):
 
 class ImageType(StrEnum):
     PUBLIC = "public"
+    """public"""
+
     URI = "uri"
+    """uri"""
+
     BASE64 = "base64"
+    """base64"""
 
 
 @dataclass
@@ -94,8 +99,13 @@ class Thread:
 
 class ButtonType(StrEnum):
     LINK = "link"
+    """link"""
+
     TEXT = "text"
+    """text"""
+
     BUTTON = "button"
+    """button"""
 
 
 @dataclass
@@ -207,22 +217,22 @@ class File:
     type: FileType
     title: str
     text: Optional[str]
-    image: ImageResult
-    thumbnail: ImageResult
-    markdown: str
-    uri: str
+    image: Optional[ImageResult]
+    thumbnail: Optional[ImageResult]
+    markdown: Optional[str]
+    uri: Optional[str]
 
 
 @dataclass
 class VideoCall:
     id: str
-    timezone: "Timezone"
+    timezone: Timezone
 
 
 @dataclass
 class Conversation:
     id: str
-    type: "ConversationType"
+    type: ConversationType
     title: str
     file_id: Optional[str] = None
 
@@ -249,7 +259,10 @@ class SearchArticle:
 
 class ConversationContentType(StrEnum):
     FILE = "file"
+    """file"""
+
     URI = "uri"
+    """uri"""
 
 
 @dataclass
@@ -262,6 +275,7 @@ class ConversationContent:
 
 class FileSectionType(StrEnum):
     MARKDOWN = "markdown"
+    """markdown"""
 
 
 @dataclass

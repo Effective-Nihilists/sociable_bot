@@ -7,6 +7,7 @@ import socketio
 from .bot_types import *
 import re
 import typing
+from types import SimpleNamespace
 
 # if len(sys.argv) > 1:
 #     arguments = sys.argv[1:]
@@ -150,8 +151,6 @@ def start():
     old_print("[BOT] start client socket", app_host)
     sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
 
-    log("[BOT] params", bot_params)
-
     while True:
         message = sys.stdin.readline()[:-1]
         if len(message) > 0:
@@ -186,7 +185,7 @@ def call(op: str, params: dict) -> Any:
     )
 
 
-def conversation(id: str) -> Optional[Conversation]:
+def conversation_get(id: str) -> Optional[Conversation]:
     """
     Get conversation
     """
@@ -199,7 +198,7 @@ def conversation(id: str) -> Optional[Conversation]:
     return Conversation(**result) if result is not None else None
 
 
-def user(id: str) -> Optional[User]:
+def user_get(id: str) -> Optional[User]:
     """
     Get user
     """
@@ -212,7 +211,7 @@ def user(id: str) -> Optional[User]:
     return User(**result) if result is not None else None
 
 
-def user_private(id: str) -> Optional[UserPrivate]:
+def user_private_get(id: str) -> Optional[UserPrivate]:
     """
     Get user private
     """
@@ -225,7 +224,7 @@ def user_private(id: str) -> Optional[UserPrivate]:
     return UserPrivate(**result) if result is not None else None
 
 
-def live_user(id: str) -> Optional[LiveUser]:
+def live_user_get(id: str) -> Optional[LiveUser]:
     """
     Get live user
     """
@@ -238,7 +237,7 @@ def live_user(id: str) -> Optional[LiveUser]:
     return LiveUser(**result) if result is not None else None
 
 
-def bot(id: str) -> Optional[Bot]:
+def bot_get(id: str) -> Optional[Bot]:
     """
     Get bot
     """
@@ -251,7 +250,7 @@ def bot(id: str) -> Optional[Bot]:
     return Bot(**result) if result is not None else None
 
 
-def bot_owners(id: str) -> List[str]:
+def bot_owners_get(id: str) -> List[str]:
     """
     Get owners of a bot
     """
@@ -679,23 +678,27 @@ def markdown_create_image(file_id: str, image: ImageResult) -> str:
     )
 
 
-def data_set(**kwargs) -> dict:
+def data_set(**kwargs) -> SimpleNamespace:
     """
     Set bot data
     """
-    return call(
-        "botCodeDataSet",
-        kwargs,
+    return SimpleNamespace(
+        **call(
+            "botCodeDataSet",
+            kwargs,
+        )
     )
 
 
-def data() -> dict:
+def data_get() -> SimpleNamespace:
     """
     Get bot data
     """
-    return call(
-        "botCodeDataGet",
-        {},
+    return SimpleNamespace(
+        **call(
+            "botCodeDataGet",
+            {},
+        )
     )
 
 

@@ -1,10 +1,7 @@
-Functions / Tools
+Text Gen Functions
 ==========================
 
-Many of the LLM models support tools or function calling.
-
-.. warning::
-    Make sure you understand how to create a bot from :ref:`tutorial_hello` tutorial
+Many of the LLM models support function calling.
 
 .. admonition:: main.py
 

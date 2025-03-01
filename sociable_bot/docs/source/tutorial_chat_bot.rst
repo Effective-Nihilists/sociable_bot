@@ -3,9 +3,6 @@ Chat Bot
 
 Let's build ChatGPT
 
-.. warning::
-    Make sure you understand how to create a bot from :ref:`tutorial_hello` tutorial
-
 .. admonition:: main.py
 
     .. code-block:: python
