@@ -1,18 +1,18 @@
 import asyncio
-from dataclasses import dataclass
+import json
 import os
+import shutil
 import subprocess
 import time
-from typing import Optional
-import uvicorn
-import requests
-import json
 import uuid
-from subprocess import Popen, PIPE
+from dataclasses import dataclass
+from subprocess import PIPE, Popen
+from typing import Optional
+
+import requests
+import uvicorn
 from fastapi import FastAPI, Request
-import shutil
 from fastapi_utils.tasks import repeat_every
-import threading
 
 
 @dataclass
@@ -20,8 +20,6 @@ class Bot:
     process: Popen
     last_message: float
     path: str
-    stdout_thread: threading.Thread
-    stderr_thread: threading.Thread
 
 
 port = int(os.environ.get("PORT", 6000))
@@ -80,9 +78,10 @@ async def bot_everything(
     if bot is not None and bot.process.poll() is None:
         try:
             bot.last_message = time.time()
-            bot.process.stdin.write(body)
-            bot.process.stdin.write("\n")
-            return "OK"
+            if bot.process.stdin is not None:
+                bot.process.stdin.write(body)
+                bot.process.stdin.write("\n")
+                return "OK"
         except Exception as e:
             print(f"[BOT] {key} failed to send command", e)
 
@@ -154,50 +153,32 @@ async def bot_everything(
         text=True,
     )
 
-    def output_reader(process, pipe, type):
-        print("[READER] started", pipe, process, pipe)
-        with pipe:
-            while process.poll() is None:
-                line = pipe.readline()
-                requests.post(
-                    f"http://{app_host}/request",
-                    json={
-                        "op": "botCodeLog",
-                        "input": {
-                            "context": {
-                                "botId": bot_id,
-                                "botCodeId": output.get("botCodeId"),
-                                "conversationId": conversation_id,
-                                "conversationThreadId": conversation_thread_id,
-                                "chargeUserIds": output.get("chargeUserIds"),
-                            },
-                            "params": {"type": type, "args": [line]},
-                        },
-                    },
-                )
-        print("[READER] finished", process, pipe)
+    context = {
+        "botId": bot_id,
+        "botCodeId": output.get("botCodeId"),
+        "conversationId": conversation_id,
+        "conversationThreadId": conversation_thread_id,
+        "chargeUserIds": output.get("chargeUserIds"),
+    }
 
-    # Create reader threads for stdout and stderr
-    stdout_thread = threading.Thread(
-        target=output_reader, args=(process, process.stdout, "log")
-    )
-    stderr_thread = threading.Thread(
-        target=output_reader, args=(process, process.stderr, "error")
-    )
+    if process.stdout is not None:
+        asyncio.get_event_loop().add_reader(
+            process.stdout, send_log, process.stdout, "log", context
+        )
 
-    # # Start the threads
-    stdout_thread.start()
-    stderr_thread.start()
+    if process.stderr is not None:
+        asyncio.get_event_loop().add_reader(
+            process.stderr, send_log, process.stderr, "error", context
+        )
 
-    process.stdin.write(body)
-    process.stdin.write("\n")
+    if process.stdin is not None:
+        process.stdin.write(body)
+        process.stdin.write("\n")
 
     bots[key] = Bot(
         process=process,
         last_message=time.time(),
         path=bot_path,
-        stdout_thread=stdout_thread,
-        stderr_thread=stderr_thread,
     )
 
     return "OK"
@@ -247,6 +228,25 @@ def cron():
             bot.process.kill()
             shutil.rmtree(bot.path, ignore_errors=True)
             del bots[key]
+
+
+def send_log(pipe, type, context):
+    line = pipe.readline()
+    if len(line) == 0:
+        # print("[READER] done and empty")
+        asyncio.get_event_loop().remove_reader(pipe)
+        return
+
+    requests.post(
+        f"http://{app_host}/request",
+        json={
+            "op": "botCodeLog",
+            "input": {
+                "context": context,
+                "params": {"type": type, "args": [line]},
+            },
+        },
+    )
 
 
 if __name__ == "__main__":

@@ -1,20 +1,23 @@
-from dataclasses import asdict, is_dataclass, dataclass
-import os
-from shutil import Error
-from typing import Any, Callable, Dict, List, Literal, Optional, Union
-import sys
 import json
-import socketio
-from .bot_types import *
+import os
 import re
+import sys
 import typing
+from dataclasses import asdict, dataclass, is_dataclass
+from shutil import Error
 from types import SimpleNamespace
+from typing import Any, Callable, Dict, List, Literal, Optional, Union
+
+import socketio
+
+from .bot_types import *
 
 # if len(sys.argv) > 1:
 #     arguments = sys.argv[1:]
 #     print("Arguments:", arguments)
 # else:
 #     print("No arguments provided.")
+
 
 @dataclass
 class Call:

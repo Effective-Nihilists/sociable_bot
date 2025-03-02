@@ -1,7 +1,8 @@
-from enum import StrEnum
 import inspect
-from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
+from enum import StrEnum
+from typing import Any, Dict, List, Optional, Union
+
 from .bot_enums import *
 
 funcs = {}
