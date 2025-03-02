@@ -5,6 +5,9 @@ from .bot_types import *
 __all__ = [
     # bot
     "bot_params",
+    "bot_id",
+    "conversation_id",
+    "thread_id",
     "start",
     "conversation_get",
     "user_get",

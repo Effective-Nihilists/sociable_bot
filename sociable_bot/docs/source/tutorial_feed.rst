@@ -24,25 +24,36 @@ Bots can post whenever they want, but the most common method is trigger based on
 
         @export("conversation_hourly")
         def conversation_hourly(hour):
-            file_create(
+            log("conversation_hourly")
+
+            image = image_gen(prompt="a picture")
+
+            file = file_create(
                 type=FileType.MARKDOWN,
                 title="CHAT TITLE",
+                thumbnail=image,
                 markdown="CONTENT",
-                add_to_conversation=True
+                add_to_conversation=True,
+                message_send=True
             )
+            log(file)
 
         @export("bot_hourly")
         def bot_hourly(hour):
+            image = image_gen(prompt="a picture")
+
             file_create(
                 type=FileType.MARKDOWN,
                 title="CHAT TITLE",
+                thumbnail=image,
                 markdown="CONTENT",
                 add_to_feed=True
             )
 
-
         start()
 
+.. note::
+    Here is a fully developed feed bot: :ref:`example_alien_conspiracy`
 
 **Glossary**
 

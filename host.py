@@ -3,15 +3,16 @@ from dataclasses import dataclass
 import os
 import subprocess
 import time
-from typing import Dict, Optional
+from typing import Optional
 import uvicorn
 import requests
 import json
 import uuid
 from subprocess import Popen, PIPE
 from fastapi import FastAPI, Request
-from apscheduler.schedulers.background import BackgroundScheduler
 import shutil
+from fastapi_utils.tasks import repeat_every
+import threading
 
 
 @dataclass
@@ -19,6 +20,8 @@ class Bot:
     process: Popen
     last_message: float
     path: str
+    stdout_thread: threading.Thread
+    stderr_thread: threading.Thread
 
 
 port = int(os.environ.get("PORT", 6000))
@@ -71,14 +74,14 @@ async def bot_everything(
 ):
     global bots
 
-    body = await request.body()
+    body = (await request.body()).decode()
     key = f"{bot_id}-{updated}-{conversation_id}-{conversation_thread_id}"
     bot = bots.get(key)
     if bot is not None and bot.process.poll() is None:
         try:
             bot.last_message = time.time()
             bot.process.stdin.write(body)
-            bot.process.stdin.write(b"\n")
+            bot.process.stdin.write("\n")
             return "OK"
         except Exception as e:
             print(f"[BOT] {key} failed to send command", e)
@@ -107,11 +110,28 @@ async def bot_everything(
     bot_path = f"/tmp/{str(uuid.uuid4())}"
     print("[BOT] path", bot_path)
     source_export(output.get("source"), bot_path)
-    pip_install(bot_path)
+    pip_log = pip_install(bot_path)
+    requests.post(
+        f"http://{app_host}/request",
+        json={
+            "op": "botCodeLog",
+            "input": {
+                "context": {
+                    "botId": bot_id,
+                    "botCodeId": output.get("botCodeId"),
+                    "conversationId": conversation_id,
+                    "conversationThreadId": conversation_thread_id,
+                    "chargeUserIds": output.get("chargeUserIds"),
+                },
+                "params": {"type": "log", "args": ["[BOT] install", pip_log]},
+            },
+        },
+    )
 
     process = Popen(
         [
             f"{bot_path}/venv/bin/python",
+            "-u",
             "main.py",
             "bot",
             output.get("token"),
@@ -126,39 +146,59 @@ async def bot_everything(
                 }
             ),
         ],
-        bufsize=0,
+        bufsize=1,
         stdin=PIPE,
+        stdout=PIPE,
         stderr=PIPE,
         cwd=bot_path,
+        text=True,
     )
 
-    def send_error_log():
-        line = process.stderr.readline().decode()
-        if len(line) > 0:
-            print("[ERROR]", line)
-            requests.post(
-                f"http://{app_host}/request",
-                json={
-                    "op": "botCodeLog",
-                    "input": {
-                        "context": {
-                            "botId": bot_id,
-                            "botCodeId": output.get("botCodeId"),
-                            "conversationId": conversation_id,
-                            "conversationThreadId": conversation_thread_id,
-                            "chargeUserIds": output.get("chargeUserIds"),
+    def output_reader(process, pipe, type):
+        print("[READER] started", pipe, process, pipe)
+        with pipe:
+            while process.poll() is None:
+                line = pipe.readline()
+                requests.post(
+                    f"http://{app_host}/request",
+                    json={
+                        "op": "botCodeLog",
+                        "input": {
+                            "context": {
+                                "botId": bot_id,
+                                "botCodeId": output.get("botCodeId"),
+                                "conversationId": conversation_id,
+                                "conversationThreadId": conversation_thread_id,
+                                "chargeUserIds": output.get("chargeUserIds"),
+                            },
+                            "params": {"type": type, "args": [line]},
                         },
-                        "params": {"type": "error", "args": [line]},
                     },
-                },
-            )
+                )
+        print("[READER] finished", process, pipe)
 
-    asyncio.get_event_loop().add_reader(process.stderr, send_error_log)
+    # Create reader threads for stdout and stderr
+    stdout_thread = threading.Thread(
+        target=output_reader, args=(process, process.stdout, "log")
+    )
+    stderr_thread = threading.Thread(
+        target=output_reader, args=(process, process.stderr, "error")
+    )
+
+    # # Start the threads
+    stdout_thread.start()
+    stderr_thread.start()
 
     process.stdin.write(body)
-    process.stdin.write(b"\n")
+    process.stdin.write("\n")
 
-    bots[key] = Bot(process=process, last_message=time.time(), path=bot_path)
+    bots[key] = Bot(
+        process=process,
+        last_message=time.time(),
+        path=bot_path,
+        stdout_thread=stdout_thread,
+        stderr_thread=stderr_thread,
+    )
 
     return "OK"
 
@@ -174,14 +214,25 @@ def source_export(source: dict[str, dict], path: str):
 
 
 def pip_install(path: str):
-    subprocess.call(["python", "-m", "venv", f"{path}/venv"])
-    subprocess.call(
+    process = subprocess.run(
+        ["python", "-m", "venv", f"{path}/venv"], capture_output=True
+    )
+    error = process.stderr.decode()
+    result = process.stdout.decode()
+    process = subprocess.run(
         [f"{path}/venv/bin/python", "-m", "pip", "install", "-r", "requirements.txt"],
+        capture_output=True,
         cwd=path,
     )
+    error += process.stderr.decode()
+    result += process.stdout.decode()
+    return error + result
 
 
+@app.on_event("startup")
+@repeat_every(seconds=30)
 def cron():
+    global bots
     now = time.time()
     for key, bot in bots.copy().items():
         # Every 30 seconds remove dead processes
@@ -199,10 +250,5 @@ def cron():
 
 
 if __name__ == "__main__":
-    print("Starting background scheduler")
-    sched = BackgroundScheduler()
-    sched.start()
-    sched.add_job(cron, "interval", seconds=30)
-
     print("Starting uvicorn")
     uvicorn.run("host:app", host="0.0.0.0", port=port)

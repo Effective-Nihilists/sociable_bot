@@ -1,5 +1,6 @@
-from dataclasses import asdict, is_dataclass
+from dataclasses import asdict, is_dataclass, dataclass
 import os
+from shutil import Error
 from typing import Any, Callable, Dict, List, Literal, Optional, Union
 import sys
 import json
@@ -15,11 +16,32 @@ from types import SimpleNamespace
 # else:
 #     print("No arguments provided.")
 
+@dataclass
+class Call:
+    op: str
+    params: dict
+    case_change: bool
+
+
 app_host = os.environ.get("APP_HOST", "localhost:3000")
 sio = socketio.Client()
 token = sys.argv[2] if sys.argv[1] == "bot" else None
 json_data = json.loads(sys.argv[3]) if sys.argv[1] == "bot" else None
-bot_params = json_data["params"] if json_data is not None else None
+started = False
+pending_calls: List[Call] = []
+
+bot_params = SimpleNamespace(**json_data["params"]) if json_data is not None else None
+"""Bot Params"""
+
+bot_id = json_data["botId"] if json_data is not None else None
+"""Bot ID"""
+
+conversation_id = json_data["conversationId"] if json_data is not None else None
+"""Conversation ID"""
+
+thread_id = json_data["conversationThreadId"] if json_data is not None else None
+"""Conversation Thread ID"""
+
 bot_context = (
     {
         "botId": json_data["botId"],
@@ -35,12 +57,14 @@ bot_context = (
 
 @sio.event
 def connect():
-    old_print("[BOT] connection established")
+    # print("[BOT] connection established")
+    pass
 
 
 @sio.event
 def disconnect():
-    old_print("[BOT] disconnected from server")
+    # print("[BOT] disconnected from server")
+    pass
 
 
 @sio.event
@@ -120,6 +144,19 @@ def convert_keys_to_snake_case(data):
         return data
 
 
+def convert_to_dict(data):
+    if isinstance(data, dict):
+        return dict(map(lambda kv: (kv[0], convert_to_dict(kv[1])), data.items()))
+    elif is_dataclass(data):
+        return convert_to_dict(asdict(data))
+    elif isinstance(data, SimpleNamespace):
+        return convert_to_dict(data.__dict__)
+    elif isinstance(data, list):
+        return list(map(lambda v: convert_to_dict(v), data))
+    else:
+        return data
+
+
 def to_camel_case(snake_str):
     return "".join(x.capitalize() for x in snake_str.lower().split("_"))
 
@@ -148,14 +185,21 @@ def start():
     """
     Start your bot, this runs the event loop so your bot can receive calls
     """
-    old_print("[BOT] start client socket", app_host)
+    # print("[BOT] start client socket", app_host)
     sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
+
+    global pending_calls, started
+    started = True
+    calls = pending_calls
+    pending_calls = []
+    for call in calls:
+        call_no_return(call.op, call.params, call.case_change)
 
     while True:
         message = sys.stdin.readline()[:-1]
         if len(message) > 0:
-            old_print("[BOT] message", message)
             msg = typing.cast(Any, convert_keys_to_snake_case(json.loads(message)))
+            log("[BOT] message", msg)
             funcName = msg.get("func")
             funcParams = msg.get("params")
             func = funcs.get(funcName)
@@ -167,21 +211,56 @@ def start():
                     func(**funcParams)
 
 
-def call(op: str, params: dict) -> Any:
-    old_print("[BOT] client socket send", op, bot_context, params)
+def call_return(op: str, params: dict, case_change: bool = True) -> Any:
+    if not started:
+        raise Error(
+            "You cannot call bot functions that require a return value until after start()"
+        )
+
+    converted = convert_to_dict(params)
+    # print("[BOT] client socket send", op, bot_context, converted)
     result = sio.call(
         "call",
         {
             "op": op,
             "input": {
                 "context": bot_context,
-                "params": convert_keys_to_camel_case(params),
+                "params": (
+                    convert_keys_to_camel_case(converted) if case_change else converted
+                ),
             },
         },
     )
     # print("[BOT] client socket send result", result)
     return (
-        convert_keys_to_snake_case(result.get("data")) if result is not None else None
+        (
+            convert_keys_to_snake_case(result.get("data"))
+            if case_change
+            else result.get("data")
+        )
+        if result is not None
+        else None
+    )
+
+
+def call_no_return(op: str, params: dict, case_change: bool = True) -> None:
+    if not started:
+        pending_calls.append(Call(op=op, params=params, case_change=case_change))
+        return
+
+    converted = convert_to_dict(params)
+    # print("[BOT] client socket send", op, bot_context, converted)
+    sio.call(
+        "call",
+        {
+            "op": op,
+            "input": {
+                "context": bot_context,
+                "params": (
+                    convert_keys_to_camel_case(converted) if case_change else converted
+                ),
+            },
+        },
     )
 
 
@@ -189,7 +268,7 @@ def conversation_get(id: str) -> Optional[Conversation]:
     """
     Get conversation
     """
-    result = call(
+    result = call_return(
         "botCodeConversationGet",
         {
             "id": id,
@@ -202,7 +281,7 @@ def user_get(id: str) -> Optional[User]:
     """
     Get user
     """
-    result = call(
+    result = call_return(
         "botCodeUserGet",
         {
             "id": id,
@@ -215,7 +294,7 @@ def user_private_get(id: str) -> Optional[UserPrivate]:
     """
     Get user private
     """
-    result = call(
+    result = call_return(
         "botCodeUserPrivateGet",
         {
             "id": id,
@@ -228,7 +307,7 @@ def live_user_get(id: str) -> Optional[LiveUser]:
     """
     Get live user
     """
-    result = call(
+    result = call_return(
         "botCodeLiveUserGet",
         {
             "id": id,
@@ -241,7 +320,7 @@ def bot_get(id: str) -> Optional[Bot]:
     """
     Get bot
     """
-    result = call(
+    result = call_return(
         "botCodeBotGet",
         {
             "id": id,
@@ -254,7 +333,7 @@ def bot_owners_get(id: str) -> List[str]:
     """
     Get owners of a bot
     """
-    return call(
+    return call_return(
         "botCodeBotOwnersGet",
         {"id": id},
     )
@@ -264,7 +343,7 @@ def message_typing() -> None:
     """
     Show a typing indicator in the active conversation
     """
-    call(
+    call_no_return(
         "botCodeMessageTyping",
         {},
     )
@@ -291,31 +370,23 @@ def message_send(
     Send a message to the active conversation
     """
     return Message(
-        **call(
+        **call_return(
             "botCodeMessageSend",
             {
                 "id": id,
                 "text": text,
                 "markdown": markdown,
-                "image": asdict(image) if image is not None else None,
-                "images": (
-                    list(map(lambda x: asdict(x), images))
-                    if images is not None
-                    else None
-                ),
-                "mentionUserIds": mention_user_ids,
-                "onlyUserIds": only_user_ids,
+                "image": image,
+                "images": images,
+                "mention_user_ids": mention_user_ids,
+                "only_user_ids": only_user_ids,
                 "lang": lang,
                 "visibility": visibility,
                 "color": color,
-                "buttons": (
-                    list(map(lambda x: asdict(x), buttons))
-                    if buttons is not None
-                    else None
-                ),
+                "buttons": buttons,
                 "mood": mood,
-                "impersonateUserId": impersonate_user_id,
-                "fileIds": files,
+                "impersonate_user_id": impersonate_user_id,
+                "file_ids": files,
                 "thread": thread,
             },
         )
@@ -329,7 +400,7 @@ def message_edit(
     Edit an existing message
     """
     return Message(
-        **call(
+        **call_return(
             "botCodeMessageEdit",
             {
                 "id": id,
@@ -346,11 +417,11 @@ def messages_to_text(
     """
     Convert a list of messages into string, useful if you need to add your conversation history to an LLM prompt
     """
-    return call(
+    return call_return(
         "botCodeMessagesToText",
         {
             "messages": messages,
-            "stripNames": strip_names,
+            "strip_names": strip_names,
         },
     )
 
@@ -365,7 +436,7 @@ def message_history(
     """
     Get messages from the active conversation
     """
-    result = call(
+    result = call_return(
         "botCodeMessageHistory",
         {
             "duration": duration,
@@ -398,28 +469,22 @@ def text_gen(
     """
     Generate text using the specified model (LLM)
     """
-    return call(
+    return call_return(
         "botCodeTextGen",
         {
             "question": question,
             "instruction": instruction,
-            "messages": (
-                list(map(lambda x: asdict(x), messages))
-                if messages is not None
-                else None
-            ),
+            "messages": messages,
             "model": model,
             "temperature": temperature,
-            "topK": top_k,
-            "topP": top_p,
-            "maxTokens": max_tokens,
-            "frequencyPenalty": frequency_penalty,
-            "presencePenalty": presence_penalty,
-            "repetitionPenalty": repetition_penalty,
-            "tools": (
-                list(map(lambda x: asdict(x), tools)) if tools is not None else None
-            ),
-            "includeFiles": include_files,
+            "top_k": top_k,
+            "top_p": top_p,
+            "max_tokens": max_tokens,
+            "frequency_penalty": frequency_penalty,
+            "presence_penalty": presence_penalty,
+            "repetition_penalty": repetition_penalty,
+            "tools": tools,
+            "include_files": include_files,
             "json": json,
         },
     )
@@ -434,12 +499,12 @@ def query_files(
     """
     Get files based on semantic search using the query
     """
-    result = call(
+    result = call_return(
         "botCodeQueryFiles",
         {
             "query": query,
             "scope": scope,
-            "catalogIds": catalog_ids,
+            "catalog_ids": catalog_ids,
             "limit": limit,
         },
     )
@@ -453,7 +518,7 @@ def query_news(
     """
     Get news based on semantic search using the query
     """
-    result = call(
+    result = call_return(
         "botCodeQueryNews",
         {
             "query": query,
@@ -478,17 +543,17 @@ def image_gen(
     """
     Generate an image using specified model
     """
-    result = call(
+    result = call_return(
         "botCodeImageGen",
         {
             "prompt": prompt,
             "model": model,
-            "negativePrompt": negative_prompt,
+            "negative_prompt": negative_prompt,
             "size": size,
-            "guidanceScale": guidance_scale,
+            "guidance_scale": guidance_scale,
             "steps": steps,
-            "image": asdict(image) if image is not None else None,
-            "imageStrength": image_strength,
+            "image": image,
+            "image_strength": image_strength,
         },
     )
     return ImageResult(**result) if result is not None else None
@@ -498,7 +563,7 @@ def google_search(query: str) -> List[SearchArticle]:
     """
     Google search
     """
-    result = call(
+    result = call_return(
         "botCodeGoogleSearch",
         {
             "query": query,
@@ -519,15 +584,15 @@ def email_send(
     """
     Send email
     """
-    call(
+    call_no_return(
         "botCodeEmailSend",
         {
-            "userId": user_id,
-            "userIds": user_ids,
+            "user_id": user_id,
+            "user_ids": user_ids,
             "subject": subject,
             "text": text,
             "markdown": markdown,
-            "fileId": file_id,
+            "file_id": file_id,
         },
     )
 
@@ -538,7 +603,7 @@ def conversation_users(
     """
     Get users for the active conversation
     """
-    result = call(
+    result = call_return(
         "botCodeConversationUsers",
         {"type": type, "role": role},
     )
@@ -550,7 +615,7 @@ def conversation_bots(tag: Optional[BotTag] = None) -> List[Bot]:
     """
     Get bots for the active conversation
     """
-    result = call(
+    result = call_return(
         "botCodeConversationBots",
         {
             "tag": tag,
@@ -564,7 +629,7 @@ def conversation_content_show(content: ConversationContent) -> None:
     """
     Show content in the active conversation
     """
-    call(
+    call_no_return(
         "botCodeConversationShowContent",
         asdict(content),
     )
@@ -576,13 +641,11 @@ def conversation_buttons_show(
     """
     Show buttons in the active conversation
     """
-    call(
+    call_no_return(
         "botCodeConversationShowButtons",
         {
-            "userId": user_id,
-            "buttons": (
-                list(map(lambda x: asdict(x), buttons)) if buttons is not None else None
-            ),
+            "user_id": user_id,
+            "buttons": buttons,
         },
     )
 
@@ -604,20 +667,20 @@ def file_create(
     Create file
     """
     return File(
-        **call(
+        **call_return(
             "botCodeFileCreate",
             {
                 "type": type,
                 "title": title,
                 "markdown": markdown,
                 "uri": uri,
-                "thumbnail": asdict(thumbnail) if thumbnail is not None else None,
+                "thumbnail": thumbnail,
                 "lang": lang,
                 "indexable": indexable,
-                "messageSend": message_send,
-                "addToConversation": add_to_conversation,
-                "addToFeed": add_to_feed,
-                "sendNotification": send_notification,
+                "message_send": message_send,
+                "add_to_conversation": add_to_conversation,
+                "add_to_feed": add_to_feed,
+                "send_notification": send_notification,
             },
         )
     )
@@ -632,13 +695,13 @@ def file_update(
     """
     Update file, only supported on markdown files
     """
-    call(
+    call_return(
         "botCodeFileUpdate",
         {
             "id": id,
             "title": title,
             "markdown": markdown,
-            "thumbnail": asdict(thumbnail) if thumbnail is not None else None,
+            "thumbnail": thumbnail,
         },
     )
 
@@ -653,12 +716,12 @@ def file_to_text_gen_message(
     Convert a file to TextGenMessage, this is useful if you need to pass file into text_gen
     """
     return TextGenMessage(
-        **call(
+        **call_return(
             "botCodeFileToTextGenMessage",
             {
                 "file": file,
                 "role": role,
-                "includeName": include_name,
+                "include_name": include_name,
                 "text": text,
             },
         )
@@ -669,11 +732,11 @@ def markdown_create_image(file_id: str, image: ImageResult) -> str:
     """
     Convert an image into markdown syntax, this will upload the file if it is base64
     """
-    return call(
+    return call_return(
         "botCodeMarkdownCreateImage",
         {
             "file_id": file_id,
-            "image": asdict(image) if image is not None else None,
+            "image": image,
         },
     )
 
@@ -683,7 +746,7 @@ def data_set(**kwargs) -> SimpleNamespace:
     Set bot data
     """
     return SimpleNamespace(
-        **call(
+        **call_return(
             "botCodeDataSet",
             kwargs,
         )
@@ -695,7 +758,7 @@ def data_get() -> SimpleNamespace:
     Get bot data
     """
     return SimpleNamespace(
-        **call(
+        **call_return(
             "botCodeDataGet",
             {},
         )
@@ -706,7 +769,7 @@ def web_page_get(session_id: str) -> WebPageData:
     """
     Get active web page, this only works when Sociable is being used a sidePanel in Chrome
     """
-    result = call(
+    result = call_return(
         "botCodeWebPageGet",
         {"session_id": session_id},
     )
@@ -714,22 +777,19 @@ def web_page_get(session_id: str) -> WebPageData:
     return WebPageData(**result)
 
 
-old_print = print
-
-
 def log(
-    *args,
+    *args: List[Any],
 ) -> None:
     """
     Log, this works the same as print
     """
-    old_print(args)
-    call(
+    call_no_return(
         "botCodeLog",
         {
             "type": "log",
-            "args": list(map(lambda x: asdict(x) if is_dataclass(x) else x, args)),
+            "args": args,
         },
+        case_change=False,
     )
 
 
@@ -737,15 +797,16 @@ print = log
 
 
 def error(
-    *args,
+    *args: List[Any],
 ) -> None:
     """
     Log an error
     """
-    call(
+    call_no_return(
         "botCodeLog",
         {
             "type": "error",
-            "args": list(map(lambda x: asdict(x) if is_dataclass(x) else x, args)),
+            "args": args,
         },
+        case_change=False,
     )
