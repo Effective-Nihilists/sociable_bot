@@ -6,7 +6,7 @@ import typing
 from dataclasses import asdict, dataclass, is_dataclass
 from shutil import Error
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, List, Literal, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import socketio
 
@@ -28,8 +28,10 @@ class Call:
 
 app_host = os.environ.get("APP_HOST", "localhost:3000")
 sio = socketio.Client()
-token = sys.argv[2] if sys.argv[1] == "bot" else None
-json_data = json.loads(sys.argv[3]) if sys.argv[1] == "bot" else None
+token = sys.argv[2] if len(sys.argv) > 1 and sys.argv[1] == "bot" else None
+json_data = (
+    json.loads(sys.argv[3]) if len(sys.argv) > 1 and sys.argv[1] == "bot" else None
+)
 started = False
 pending_calls: List[Call] = []
 
@@ -148,13 +150,13 @@ def convert_keys_to_snake_case(data):
 
 
 def convert_to_dict(data):
-    if isinstance(data, dict):
-        return dict(map(lambda kv: (kv[0], convert_to_dict(kv[1])), data.items()))
-    elif is_dataclass(data):
+    if is_dataclass(data):
         return convert_to_dict(asdict(data))
     elif isinstance(data, SimpleNamespace):
         return convert_to_dict(data.__dict__)
-    elif isinstance(data, list):
+    elif isinstance(data, dict):
+        return dict(map(lambda kv: (kv[0], convert_to_dict(kv[1])), data.items()))
+    elif isinstance(data, list) or isinstance(data, tuple):
         return list(map(lambda v: convert_to_dict(v), data))
     else:
         return data
@@ -781,7 +783,7 @@ def web_page_get(session_id: str) -> WebPageData:
 
 
 def log(
-    *args: List[Any],
+    *args: Any,
 ) -> None:
     """
     Log, this works the same as print
@@ -800,7 +802,7 @@ print = log
 
 
 def error(
-    *args: List[Any],
+    *args: Any,
 ) -> None:
     """
     Log an error
