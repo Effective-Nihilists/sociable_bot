@@ -103,6 +103,9 @@ To test this, you will need to create a group chat that includes this bot plus a
         start()
 
 
+.. note::
+    Here is the ultimate moderator, a podcast host: :ref:`example_podcast`
+
 
 **Glossary**
 
