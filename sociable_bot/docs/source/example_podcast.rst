@@ -5,7 +5,9 @@ Podcaster
 
 The podcast setup is basically the same as Moderator. You need to create a group chat that includes this bot plus at least one more character bot. The start a video call, select the topic, and start podcast.
 
-..  youtube:: hc7icH3KXsk
+.. admonition:: Walkthrough
+
+    ..  youtube:: hc7icH3KXsk
 
 
 #######
@@ -58,9 +60,9 @@ main.py
         start()
 
 
-#######
+##########
 context.py
-#######
+##########
     .. code-block:: python
 
         from sociable_bot import *
@@ -151,9 +153,9 @@ context.py
             buttons_update(data)
 
 
-#######
+##########
 article.py
-#######
+##########
 
     .. code-block:: python
 
@@ -238,9 +240,9 @@ article.py
                 message_send=True,
             )
 
-#######
+##########
 podcast.py
-#######
+##########
 
     .. code-block:: python
 
@@ -492,9 +494,9 @@ podcast.py
                     text="write a reply",
                 )
 
-#######
+##########
 config.py
-#######
+##########
 
     .. code-block:: python
 
@@ -557,9 +559,9 @@ config.py
         bot_intros = bot_params.bot_intros if hasattr(bot_params, "bot_intros") else True
 
 
-#######
+############
 params.json
-#######
+############
 
     .. code-block:: json
 
@@ -625,9 +627,9 @@ params.json
             }
         }
 
-#######
+################
 requirements.txt
-#######
+################
 
     .. code-block:: text
         :name: requirements

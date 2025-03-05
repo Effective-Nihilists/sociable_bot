@@ -6,6 +6,12 @@ Let's create a bot that will complain about the news. This bot requires a new Py
 .. warning::
     Make sure to add the :ref:`web tag <concept_export>` to the bot
 
+    Add install the chrome extension `here <https://chromewebstore.google.com/detail/sociable/haodmoihodngjigfdbojjnohohndoopp>`_
+
+.. admonition:: Walkthrough
+    
+    ..  youtube:: oyyM-BGXnJY
+
 .. admonition:: main.py
 
     .. code-block:: python

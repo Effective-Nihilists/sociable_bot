@@ -121,6 +121,15 @@ class Button:
 
 
 @dataclass
+class MenuItem:
+    func: str
+    title: str
+    params: Optional[Dict[str, Any]] = None
+    checked: Optional[bool] = None
+    enabled: Optional[bool] = None
+
+
+@dataclass
 class Message:
     id: str
     created: int

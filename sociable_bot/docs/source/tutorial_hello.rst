@@ -32,6 +32,10 @@ Steps:
     #. Click on "Chat" button in the bottom bar
     #. The event "conversation_start" happens when some starts a new conversation with this bot, if you want to restart your conversation click on "..." in the top-right and select "Wipe"
 
+.. admonition:: Walkthrough
+    
+    ..  youtube:: LXu6ZKLkrHs
+
 
 .. admonition:: main.py
 

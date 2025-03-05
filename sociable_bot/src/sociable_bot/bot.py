@@ -74,6 +74,7 @@ def disconnect():
 
 @sio.event
 def callback(msg):
+    log("[BOT] function call", msg)
     funcName = msg.get("func")
     funcParams = msg.get("params")
     func = funcs.get(funcName)
@@ -342,6 +343,19 @@ def bot_owners_get(id: str) -> List[str]:
         "botCodeBotOwnersGet",
         {"id": id},
     )
+
+
+def file_get(id: str) -> Optional[File]:
+    """
+    Get file
+    """
+    result = call_return(
+        "botCodeFileGet",
+        {
+            "id": id,
+        },
+    )
+    return File(**result) if result is not None else None
 
 
 def message_typing() -> None:
@@ -651,6 +665,21 @@ def conversation_buttons_show(
         {
             "user_id": user_id,
             "buttons": buttons,
+        },
+    )
+
+
+def conversation_context_menu_set(
+    user_id: Optional[str] = None, menu_items: Optional[List[MenuItem]] = None
+) -> None:
+    """
+    Add context menu to the current web page
+    """
+    call_no_return(
+        "botCodeConversationContextMenuSet",
+        {
+            "user_id": user_id,
+            "menu_items": menu_items,
         },
     )
 
