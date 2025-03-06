@@ -296,19 +296,6 @@ def user_get(id: str) -> Optional[User]:
     return User(**result) if result is not None else None
 
 
-def user_private_get(id: str) -> Optional[UserPrivate]:
-    """
-    Get user private
-    """
-    result = call_return(
-        "botCodeUserPrivateGet",
-        {
-            "id": id,
-        },
-    )
-    return UserPrivate(**result) if result is not None else None
-
-
 def live_user_get(id: str) -> Optional[LiveUser]:
     """
     Get live user
@@ -669,11 +656,42 @@ def conversation_buttons_show(
     )
 
 
+def tool_context_menu_set(
+    user_id: str, menu_items: Optional[List[MenuItem]] = None
+) -> None:
+    """
+    Add context menu to the current web page all of the time
+    """
+    call_no_return(
+        "botCodeToolContextMenuSet",
+        {
+            "user_id": user_id,
+            "menu_items": menu_items,
+        },
+    )
+
+
+def tool_conversation_show(
+    session_id: str,
+    video_call_enabled: Optional[bool] = None,
+) -> None:
+    """
+    Open a conversation
+    """
+    call_no_return(
+        "botCodeToolConversationShow",
+        {
+            "session_id": session_id,
+            "video_call_enabled": video_call_enabled,
+        },
+    )
+
+
 def conversation_context_menu_set(
     user_id: Optional[str] = None, menu_items: Optional[List[MenuItem]] = None
 ) -> None:
     """
-    Add context menu to the current web page
+    Add context menu to the current web page when this conversation is active
     """
     call_no_return(
         "botCodeConversationContextMenuSet",

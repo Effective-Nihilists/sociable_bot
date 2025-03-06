@@ -21,6 +21,7 @@ name_map = {
     "thread_stop": "threadStop",
     "input_changed": "inputChanged",
     "web_page_updated": "webPageUpdated",
+    "tool_start": "toolStart",
 }
 
 
@@ -184,14 +185,6 @@ class User:
     type: str
     lang: UserLang
     timezone: Timezone
-    calendly: Optional[str] = None
-
-
-@dataclass
-class UserPrivate:
-    id: str
-    calendly: Optional[str]
-    email: Optional[str]
 
 
 @dataclass
