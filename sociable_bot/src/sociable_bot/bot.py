@@ -862,3 +862,40 @@ def error(
         },
         case_change=False,
     )
+
+
+def kagi_summarize(url: Optional[str] = None, text: Optional[str] = None):
+    """
+    Kagi Summarize
+    """
+    return call_return("kagiSummarize", {"url": url, "text": text})
+
+
+def kagi_enrich_web(query: str):
+    """
+    Kagi Enrich Web
+    """
+    return KagiSearchOutput(**call_return("kagiEnrichWeb", {"query": query}))
+
+
+def kagi_enrich_news(query: str):
+    """
+    Kagi Enrich News
+    """
+    return KagiSearchOutput(
+        **call_return(
+            "kagiEnrichNews",
+            {
+                "query": query,
+            },
+        )
+    )
+
+
+def kagi_search(query: str, limit: Optional[int] = None):
+    """
+    Kagi Search
+    """
+    return KagiSearchOutput(
+        **call_return("kagiSearch", {"query": query, "limit": limit})
+    )

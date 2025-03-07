@@ -304,3 +304,46 @@ class WebPageData:
     html: str
     url: str
     title: str
+
+
+@dataclass
+class KagiSearchItem:
+    url: str
+    title: str
+    snippet: str
+    published: Optional[int] = None
+    thumbnail: Optional[ImageResult] = None
+
+    def __init__(
+        self,
+        url: str,
+        title: str,
+        snippet: str,
+        published: Optional[int] = None,
+        thumbnail: Optional[Union[ImageResult, dict]] = None,
+    ):
+        self.url = url
+        self.title = title
+        self.snippet = snippet
+        self.published = published
+        self.thumbnail = (
+            ImageResult(**thumbnail)
+            if thumbnail is not None and isinstance(thumbnail, dict)
+            else thumbnail
+        )
+
+
+@dataclass
+class KagiSearchOutput:
+    items: List[KagiSearchItem]
+    related: Optional[List[str]] = None
+
+    def __init__(
+        self,
+        items: List[Union[KagiSearchItem, dict]],
+        related: Optional[List[str]] = None,
+    ):
+        self.related = related
+        self.items = list(
+            map(lambda x: KagiSearchItem(**x) if isinstance(x, dict) else x, items)
+        )

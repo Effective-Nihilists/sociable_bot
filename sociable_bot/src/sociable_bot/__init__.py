@@ -41,6 +41,10 @@ __all__ = [
     "web_page_get",
     "log",
     "error",
+    "kagi_summarize",
+    "kagi_enrich_web",
+    "kagi_enrich_news",
+    "kagi_search",
     # bot_types
     "export",
     "ImageType",
@@ -70,6 +74,8 @@ __all__ = [
     "FileSection",
     "Event",
     "WebPageData",
+    "KagiSearchItem",
+    "KagiSearchOutput",
     # bot_enums
     "UserLang",
     "ImageGenModel",
