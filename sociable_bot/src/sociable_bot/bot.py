@@ -179,10 +179,10 @@ def convert_keys_to_camel_case(data):
         new_data = {}
         for key, value in data.items():
             new_key = to_lower_camel_case(key)
-            new_data[new_key] = convert_keys_to_snake_case(value)
+            new_data[new_key] = convert_keys_to_camel_case(value)
         return new_data
     elif isinstance(data, list):
-        return [convert_keys_to_snake_case(item) for item in data]
+        return [convert_keys_to_camel_case(item) for item in data]
     else:
         return data
 
@@ -392,7 +392,7 @@ def message_send(
                 "buttons": buttons,
                 "mood": mood,
                 "impersonate_user_id": impersonate_user_id,
-                "file_ids": files,
+                "file_ids": [file.id for file in files] if files is not None else None,
                 "thread": thread,
             },
         )
@@ -710,8 +710,6 @@ def file_create(
     thumbnail: Optional[ImageResult] = None,
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
-    message_send: Optional[bool] = None,
-    add_to_conversation: Optional[bool] = None,
     add_to_feed: Optional[bool] = None,
     send_notification: Optional[bool] = None,
 ) -> File:
@@ -729,8 +727,6 @@ def file_create(
                 "thumbnail": thumbnail,
                 "lang": lang,
                 "indexable": indexable,
-                "message_send": message_send,
-                "add_to_conversation": add_to_conversation,
                 "add_to_feed": add_to_feed,
                 "send_notification": send_notification,
             },

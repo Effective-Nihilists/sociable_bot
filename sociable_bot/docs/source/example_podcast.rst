@@ -231,14 +231,14 @@ article.py
 
             message_edit(id=message_id, text="done")
 
-            return file_create(
+            file = file_create(
                 type=FileType.MARKDOWN,
                 title=title,
                 thumbnail=thumbnail,
                 markdown=story,
-                add_to_conversation=True,
-                message_send=True,
             )
+
+            message_send(files=[file])
 
 ##########
 podcast.py

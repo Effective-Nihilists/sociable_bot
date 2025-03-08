@@ -127,15 +127,16 @@ This bot will create a post once per day. If you send it the message "post", it 
             if add_to_conversation:
                 message_edit(id=message_id, text="Done")
 
-            return file_create(
+            file = file_create(
                 type=FileType.MARKDOWN,
                 title=title,
                 thumbnail=thumbnail,
                 markdown=story,
-                add_to_conversation=add_to_conversation,
                 add_to_feed=not add_to_conversation,
-                message_send=add_to_conversation,
             )
+
+            if add_to_conversation:
+                message_send(files=[file])
 
 
         @export("search_news")

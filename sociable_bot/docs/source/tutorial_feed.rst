@@ -33,10 +33,9 @@ Bots can post whenever they want, but the most common method is trigger based on
                 title="CHAT TITLE",
                 thumbnail=image,
                 markdown="CONTENT",
-                add_to_conversation=True,
-                message_send=True
             )
-            log(file)
+
+            message_send(files=[file])
 
         @export("bot_hourly")
         def bot_hourly(hour):
