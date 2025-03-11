@@ -35,6 +35,7 @@ __all__ = [
     "conversation_context_menu_set",
     "conversation_content_show",
     "conversation_content_hide",
+    "conversation_content_maximized",
     "file_get",
     "file_create",
     "file_update",
@@ -80,6 +81,7 @@ __all__ = [
     "WebPageData",
     "KagiSearchItem",
     "KagiSearchOutput",
+    "Padding",
     # bot_enums
     "UserLang",
     "ImageGenModel",

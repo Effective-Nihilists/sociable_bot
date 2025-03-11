@@ -347,3 +347,11 @@ class KagiSearchOutput:
         self.items = list(
             map(lambda x: KagiSearchItem(**x) if isinstance(x, dict) else x, items)
         )
+
+
+@dataclass
+class Padding:
+    left: int
+    top: int
+    right: int
+    bottom: int

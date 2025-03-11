@@ -1,6 +1,6 @@
 [project]
 name = "sociable_bot"
-version = "0.0.74"
+version = "0.0.76"
 authors = [
   { name="Justin Mann", email="justin.mann@gmail.com" },
 ]

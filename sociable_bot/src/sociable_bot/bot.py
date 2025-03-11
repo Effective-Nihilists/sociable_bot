@@ -676,13 +676,20 @@ def conversation_content_show(
     file_id: Optional[str] = None,
     disabled: Optional[bool] = None,
     uri: Optional[str] = None,
+    padding: Optional[Padding] = None,
 ) -> None:
     """
     Show content in the active conversation
     """
     call_no_return(
-        "botCodeConversationShowContent",
-        {"type": type, "file_id": file_id, "disabled": disabled, "uri": uri},
+        "botCodeConversationContentShow",
+        {
+            "type": type,
+            "file_id": file_id,
+            "disabled": disabled,
+            "uri": uri,
+            "padding": padding,
+        },
     )
 
 
@@ -691,8 +698,20 @@ def conversation_content_hide() -> None:
     Show content in the active conversation
     """
     call_no_return(
-        "botCodeConversationShowContent",
+        "botCodeConversationContentShow",
         None,
+    )
+
+
+def conversation_content_maximized(
+    maximized: bool, user_id: Optional[str] = None
+) -> None:
+    """
+    Toggle the content netween maximized and normal size
+    """
+    call_no_return(
+        "botCodeConversationContentMaximized",
+        {"maximized": maximized, "user_id": user_id},
     )
 
 
@@ -703,7 +722,7 @@ def conversation_buttons_show(
     Show buttons in the active conversation
     """
     call_no_return(
-        "botCodeConversationShowButtons",
+        "botCodeConversationButtonsShow",
         {
             "user_id": user_id,
             "buttons": buttons,
