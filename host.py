@@ -351,12 +351,19 @@ async def proxy(
 
     # 302 redirect to path/query
     response = RedirectResponse(url=f"{url if url is not None else '/'}")
-    response.set_cookie(key="bot_id", value=bot_id)
-    response.set_cookie(key="updated", value=updated)
+    response.set_cookie(key="bot_id", value=bot_id, samesite="none", secure=True)
+    response.set_cookie(key="updated", value=updated, samesite="none", secure=True)
     if conversation_id is not None:
-        response.set_cookie(key="conversation_id", value=conversation_id)
+        response.set_cookie(
+            key="conversation_id", value=conversation_id, samesite="none", secure=True
+        )
     if conversation_thread_id is not None:
-        response.set_cookie(key="conversation_thread_id", value=conversation_thread_id)
+        response.set_cookie(
+            key="conversation_thread_id",
+            value=conversation_thread_id,
+            samesite="none",
+            secure=True,
+        )
     return response
 
 
