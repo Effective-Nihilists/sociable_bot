@@ -16,13 +16,13 @@ from typing import Any, Optional
 import httpx
 import requests
 import uvicorn
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import FastAPI, Request, Response, WebSocket
 from fastapi_proxy_lib.core.http import ReverseHttpProxy
 from fastapi_proxy_lib.core.websocket import ReverseWebSocketProxy
 from fastapi_utils.tasks import repeat_every
 from httpx import AsyncClient
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
+from starlette.responses import HTMLResponse
 
 
 @dataclass
@@ -340,6 +340,7 @@ async def proxy(
     conversation_id: Optional[str] = None,
     conversation_thread_id: Optional[str] = None,
     url: Optional[str] = None,
+    session: Optional[str] = None,
 ):
     # get bot port
     bot_instance_get(
@@ -349,8 +350,21 @@ async def proxy(
         conversation_thread_id=conversation_thread_id,
     )
 
-    # 302 redirect to path/query
-    response = RedirectResponse(url=f"{url if url is not None else '/'}")
+    # Use a javascript redirect because iOS safari
+    # does not support setting cookies on a redirect
+    url = f"{url if url is not None else '/'}"
+    response = HTMLResponse(
+        f"""
+<html>
+<body>
+<script>
+    {f'document.cookie="heroku-session-affinity={session}; path=/; SameSite=None; Secure";' if session is not None else ""}
+    window.location="{url}"
+</script>
+</body>
+</html>
+"""
+    )
     response.set_cookie(key="bot_id", value=bot_id, samesite="none", secure=True)
     response.set_cookie(key="updated", value=updated, samesite="none", secure=True)
     if conversation_id is not None:
@@ -364,6 +378,7 @@ async def proxy(
             samesite="none",
             secure=True,
         )
+
     return response
 
 
