@@ -249,7 +249,7 @@ class NewsArticle:
 
 @dataclass
 class FileChunk:
-    fileId: str
+    file_id: str
     text: str
 
 
@@ -271,7 +271,7 @@ class ConversationContentType(StrEnum):
 @dataclass
 class ConversationContent:
     type: ConversationContentType
-    fileId: Optional[str] = None
+    file_id: Optional[str] = None
     disabled: Optional[bool] = None
     uri: Optional[str] = None
 

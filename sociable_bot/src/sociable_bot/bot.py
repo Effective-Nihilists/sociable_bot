@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import re
@@ -28,9 +29,10 @@ class Call:
 
 app_host = os.environ.get("APP_HOST", "localhost:3000")
 sio = socketio.Client()
-token = sys.argv[2] if len(sys.argv) > 1 and sys.argv[1] == "bot" else None
+bot_port = int(sys.argv[2]) if len(sys.argv) > 1 and sys.argv[1] == "bot" else None
+token = sys.argv[3] if len(sys.argv) > 1 and sys.argv[1] == "bot" else None
 json_data = (
-    json.loads(sys.argv[3]) if len(sys.argv) > 1 and sys.argv[1] == "bot" else None
+    json.loads(sys.argv[4]) if len(sys.argv) > 1 and sys.argv[1] == "bot" else None
 )
 started = False
 pending_calls: List[Call] = []
@@ -194,6 +196,8 @@ def start():
     # print("[BOT] start client socket", app_host)
     sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
 
+    print("[BOT] initialized")
+
     global pending_calls, started
     started = True
     calls = pending_calls
@@ -204,17 +208,53 @@ def start():
     while True:
         message = sys.stdin.readline()[:-1]
         if len(message) > 0:
-            msg = typing.cast(Any, convert_keys_to_snake_case(json.loads(message)))
-            log("[BOT] message", msg)
-            funcName = msg.get("func")
-            funcParams = msg.get("params")
-            func = funcs.get(funcName)
-            if func is not None:
-                arg_mapper = arg_map.get(funcName)
-                if arg_mapper is not None:
-                    func(**arg_mapper(funcParams))
-                else:
-                    func(**funcParams)
+            run_call(message)
+
+
+def run_call(message: str):
+    msg = typing.cast(Any, convert_keys_to_snake_case(json.loads(message)))
+    log("[BOT] message", msg)
+    funcName = msg.get("func")
+    funcParams = msg.get("params")
+    func = funcs.get(funcName)
+    if func is not None:
+        arg_mapper = arg_map.get(funcName)
+        if arg_mapper is not None:
+            func(**arg_mapper(funcParams))
+        else:
+            func(**funcParams)
+
+
+def start_nonblocking():
+    """
+    Start your bot, this start an async loop to handle future calls
+    """
+    sio.connect(f"ws://{app_host}/", auth={"token": token}, retry=True)
+
+    print("[BOT] initialized")
+
+    global pending_calls, started
+    started = True
+    calls = pending_calls
+    pending_calls = []
+    for call in calls:
+        call_no_return(call.op, call.params, call.case_change)
+
+    asyncio.get_event_loop().add_reader(
+        sys.stdin,
+        message_read_loop,
+    )
+    print("[BOT] start done", app_host)
+
+
+def message_read_loop():
+    message = sys.stdin.readline()
+    if len(message) == 0:
+        # print("[READER] done and empty")
+        asyncio.get_event_loop().remove_reader(sys.stdin)
+        return
+
+    run_call(message)
 
 
 def call_return(op: str, params: dict, case_change: bool = True) -> Any:
@@ -249,7 +289,7 @@ def call_return(op: str, params: dict, case_change: bool = True) -> Any:
     )
 
 
-def call_no_return(op: str, params: dict, case_change: bool = True) -> None:
+def call_no_return(op: str, params: Any, case_change: bool = True) -> None:
     if not started:
         pending_calls.append(Call(op=op, params=params, case_change=case_change))
         return
@@ -631,13 +671,28 @@ def conversation_bots(tag: Optional[BotTag] = None) -> List[Bot]:
     return list(map(lambda m: Bot(**m), result))
 
 
-def conversation_content_show(content: ConversationContent) -> None:
+def conversation_content_show(
+    type: ConversationContentType = ConversationContentType.URI,
+    file_id: Optional[str] = None,
+    disabled: Optional[bool] = None,
+    uri: Optional[str] = None,
+) -> None:
     """
     Show content in the active conversation
     """
     call_no_return(
         "botCodeConversationShowContent",
-        asdict(content),
+        {"type": type, "file_id": file_id, "disabled": disabled, "uri": uri},
+    )
+
+
+def conversation_content_hide() -> None:
+    """
+    Show content in the active conversation
+    """
+    call_no_return(
+        "botCodeConversationShowContent",
+        None,
     )
 
 
@@ -839,9 +894,6 @@ def log(
         },
         case_change=False,
     )
-
-
-print = log
 
 
 def error(
