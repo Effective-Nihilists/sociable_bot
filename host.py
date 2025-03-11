@@ -359,6 +359,7 @@ async def proxy(
 <body>
 <script>
     {f'document.cookie="heroku-session-affinity={session}; path=/; SameSite=None; Secure";' if session is not None else ""}
+    document.cookie="JUSTIN=TEST; path=/; SameSite=None; Secure";
     window.location="{url}"
 </script>
 </body>
