@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import select
 import shutil
 import socket
 import subprocess
@@ -11,7 +12,7 @@ from contextlib import closing
 from dataclasses import dataclass
 from shutil import Error
 from subprocess import PIPE, Popen
-from typing import Any, Optional
+from typing import Optional
 
 import httpx
 import requests
@@ -85,26 +86,26 @@ async def bot_everything(
 ):
     body = (await request.body()).decode()
 
-    bot_instance = bot_instance_get(
+    bot_instance = await bot_instance_get(
         bot_id=bot_id,
         updated=updated,
         conversation_id=conversation_id,
         conversation_thread_id=conversation_thread_id,
     )
 
-    if bot_instance.process.stdin is not None:
+    if bot_instance is not None and bot_instance.process.stdin is not None:
         bot_instance.process.stdin.write(body)
         bot_instance.process.stdin.write("\n")
 
     return "OK"
 
 
-def bot_instance_get(
+async def bot_instance_get(
     bot_id: str,
     updated: str,
     conversation_id: Optional[str],
     conversation_thread_id: Optional[str],
-) -> BotInstance:
+) -> Optional[BotInstance]:
     global bot_instances, bot_containers
 
     bot_container_key = f"{bot_id}-{updated}"
@@ -211,25 +212,30 @@ def bot_instance_get(
     if process.stdout is None:
         raise Error("[BOT] has no stdout")
 
+    poll_obj = select.poll()
+    poll_obj.register(process.stdout, select.POLLIN)
+
     initialized = False
+    start_time = time.time()
     while not initialized:
-        line = process.stdout.readline()
-        if len(line) == 0:
-            raise Error("[BOT] died before initialized")
+        poll_result = poll_obj.poll(0)
+        if poll_result:
+            line = process.stdout.readline()
+            if len(line) == 0:
+                log(context, "error", ["[BOT] died before initialized"])
+                return None
 
-        if line == "[BOT] initialized\n":
-            initialized = True
+            if line == "[BOT] initialized\n":
+                initialized = True
 
-        requests.post(
-            f"http://{app_host}/request",
-            json={
-                "op": "botCodeLog",
-                "input": {
-                    "context": context,
-                    "params": {"type": "log", "args": [line]},
-                },
-            },
-        )
+            log(context, "log", [line])
+
+        if time.time() - start_time > 3 * 60:
+            log(context, "error", ["[BOT] initialization timed out after 3 minutes"])
+            return None
+
+        await asyncio.sleep(0.1)
+
     if process.stdout is not None:
         asyncio.get_event_loop().add_reader(
             process.stdout, send_log, process.stdout, "log", context
@@ -314,16 +320,7 @@ def send_log(pipe, type, context):
         asyncio.get_event_loop().remove_reader(pipe)
         return
 
-    requests.post(
-        f"http://{app_host}/request",
-        json={
-            "op": "botCodeLog",
-            "input": {
-                "context": context,
-                "params": {"type": type, "args": [line]},
-            },
-        },
-    )
+    log(context, type, [line])
 
 
 def find_available_port():
@@ -343,7 +340,7 @@ async def proxy(
     session: Optional[str] = None,
 ):
     # get bot port
-    bot_instance_get(
+    await bot_instance_get(
         bot_id=bot_id,
         updated=updated,
         conversation_id=conversation_id,
@@ -402,12 +399,15 @@ async def http_proxy(request: Request, path: str = ""):
     conversation_id = request.cookies.get("conversation_id")
     conversation_thread_id = request.cookies.get("conversation_thread_id")
 
-    bot_instance = bot_instance_get(
+    bot_instance = await bot_instance_get(
         bot_id=bot_id,
         updated=updated,
         conversation_id=conversation_id,
         conversation_thread_id=conversation_thread_id,
     )
+
+    if bot_instance is None:
+        return
 
     base_url = f"http://localhost:{bot_instance.port}/"
 
@@ -426,12 +426,15 @@ async def websocket_proxy(websocket: WebSocket, path: str = ""):
     conversation_id = websocket.cookies.get("conversation_id")
     conversation_thread_id = websocket.cookies.get("conversation_thread_id")
 
-    bot_instance = bot_instance_get(
+    bot_instance = await bot_instance_get(
         bot_id=bot_id,
         updated=updated,
         conversation_id=conversation_id,
         conversation_thread_id=conversation_thread_id,
     )
+
+    if bot_instance is None:
+        return
 
     base_url = f"http://localhost:{bot_instance.port}/"
 
@@ -440,6 +443,21 @@ async def websocket_proxy(websocket: WebSocket, path: str = ""):
         base_url=base_url,
     )
     return await proxy.proxy(websocket=websocket, path=path)
+
+
+def log(context: dict, type: str, args: list[str]):
+    global app_host
+
+    requests.post(
+        f"http://{app_host}/request",
+        json={
+            "op": "botCodeLog",
+            "input": {
+                "context": context,
+                "params": {"type": type, "args": args},
+            },
+        },
+    )
 
 
 if __name__ == "__main__":
