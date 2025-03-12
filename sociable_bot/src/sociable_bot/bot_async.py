@@ -314,7 +314,7 @@
 #     size: Optional[ImageGenSize] = None,
 #     guidance_scale: Optional[float] = None,
 #     steps: Optional[int] = None,
-#     image: Optional[ImageResult] = None,
+#     image: Optional[Image] = None,
 #     image_strength: Optional[float] = None,
 # ) -> Optional[ImageBase64Result]:
 #     result = await call(
@@ -454,7 +454,7 @@
 #     id: str,
 #     markdown: Optional[str] = None,
 #     title: Optional[str] = None,
-#     thumbnail: Optional[ImageResult] = None,
+#     thumbnail: Optional[Image] = None,
 # ) -> None:
 #     await call(
 #         "botCodeFileUpdate",

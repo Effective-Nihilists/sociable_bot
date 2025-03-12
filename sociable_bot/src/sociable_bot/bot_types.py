@@ -1,3 +1,4 @@
+import base64 as BASE64
 import inspect
 from dataclasses import dataclass
 from enum import StrEnum
@@ -80,14 +81,61 @@ class ImageType(StrEnum):
     """base64"""
 
 
+class ImageMimeType(StrEnum):
+    JPG = "image/jpeg"
+    """image/jpeg"""
+
+    PNG = "image/png"
+    """image/png"""
+
+    GIF = "image/gif"
+    """image/gif"""
+
+    WEBP = "image/webp"
+    """image/webp"""
+
+
 @dataclass
-class ImageResult:
+class Image:
     type: ImageType
     width: int
     height: int
     base64: Optional[str] = None
+    mime_type: Optional[ImageMimeType] = None
     uri: Optional[str] = None
     prompt: Optional[str] = None
+
+    def __init__(
+        self,
+        type: Optional[ImageType],
+        width: Optional[int],
+        height: Optional[int],
+        base64: Optional[str] = None,
+        mime_type: Optional[ImageMimeType] = None,
+        uri: Optional[str] = None,
+        prompt: Optional[str] = None,
+        file: Optional[str] = None,
+    ):
+        if file is not None:
+            with open(file, "rb") as f:
+                type = ImageType.BASE64
+                base64 = BASE64.b64encode(f.read()).decode()
+
+        self.type = (
+            type
+            if type is not None
+            else (ImageType.URI if uri is not None else ImageType.BASE64)
+        )
+        self.width = width if width is not None else 1024
+        self.height = height if height is not None else 1024
+        self.base64 = base64
+        self.mime_type = (
+            mime_type
+            if mime_type is not None
+            else (ImageMimeType.JPG if base64 is not None else None)
+        )
+        self.uri = uri
+        self.prompt = prompt
 
 
 @dataclass
@@ -152,7 +200,7 @@ class Message:
     thread: Optional[Thread] = None
 
 
-TextGenMessageContent = Union[str, ImageResult]
+TextGenMessageContent = Union[str, Image]
 
 
 @dataclass
@@ -170,8 +218,8 @@ class TextGenTool:
 
 @dataclass
 class Avatar:
-    image: ImageResult
-    background: Optional[ImageResult]
+    image: Image
+    background: Optional[Image]
 
 
 @dataclass
@@ -202,7 +250,7 @@ class Emotion:
 class LiveUser:
     id: str
     emotion: Optional[Emotion]
-    image: Optional[ImageResult]
+    image: Optional[Image]
 
 
 @dataclass
@@ -220,8 +268,8 @@ class File:
     type: FileType
     title: str
     text: Optional[str] = None
-    image: Optional[ImageResult] = None
-    thumbnail: Optional[ImageResult] = None
+    image: Optional[Image] = None
+    thumbnail: Optional[Image] = None
     markdown: Optional[str] = None
     uri: Optional[str] = None
 
@@ -312,7 +360,7 @@ class KagiSearchItem:
     title: str
     snippet: str
     published: Optional[int] = None
-    thumbnail: Optional[ImageResult] = None
+    thumbnail: Optional[Image] = None
 
     def __init__(
         self,
@@ -320,14 +368,14 @@ class KagiSearchItem:
         title: str,
         snippet: str,
         published: Optional[int] = None,
-        thumbnail: Optional[Union[ImageResult, dict]] = None,
+        thumbnail: Optional[Union[Image, dict]] = None,
     ):
         self.url = url
         self.title = title
         self.snippet = snippet
         self.published = published
         self.thumbnail = (
-            ImageResult(**thumbnail)
+            Image(**thumbnail)
             if thumbnail is not None and isinstance(thumbnail, dict)
             else thumbnail
         )

@@ -398,8 +398,8 @@ def message_typing() -> None:
 def message_send(
     id: Optional[str] = None,
     text: Optional[str] = None,
-    image: Optional[ImageResult] = None,
-    images: Optional[List[ImageResult]] = None,
+    image: Optional[Image] = None,
+    images: Optional[List[Image]] = None,
     markdown: Optional[str] = None,
     mention_user_ids: Optional[List[str]] = None,
     only_user_ids: Optional[List[str]] = None,
@@ -583,9 +583,9 @@ def image_gen(
     size: Optional[ImageGenSize] = None,
     guidance_scale: Optional[float] = None,
     steps: Optional[int] = None,
-    image: Optional[ImageResult] = None,
+    image: Optional[Image] = None,
     image_strength: Optional[float] = None,
-) -> Optional[ImageResult]:
+) -> Optional[Image]:
     """
     Generate an image using specified model
     """
@@ -602,7 +602,7 @@ def image_gen(
             "image_strength": image_strength,
         },
     )
-    return ImageResult(**result) if result is not None else None
+    return Image(**result) if result is not None else None
 
 
 def google_search(query: str) -> List[SearchArticle]:
@@ -781,7 +781,7 @@ def file_create(
     title: str,
     markdown: Optional[str] = None,
     uri: Optional[str] = None,
-    thumbnail: Optional[ImageResult] = None,
+    thumbnail: Optional[Image] = None,
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
     add_to_feed: Optional[bool] = None,
@@ -812,7 +812,7 @@ def file_update(
     id: str,
     markdown: Optional[str] = None,
     title: Optional[str] = None,
-    thumbnail: Optional[ImageResult] = None,
+    thumbnail: Optional[Image] = None,
 ) -> None:
     """
     Update file, only supported on markdown files
@@ -850,7 +850,7 @@ def file_to_text_gen_message(
     )
 
 
-def markdown_create_image(file_id: str, image: ImageResult) -> str:
+def markdown_create_image(file_id: str, image: Image) -> str:
     """
     Convert an image into markdown syntax, this will upload the file if it is base64
     """

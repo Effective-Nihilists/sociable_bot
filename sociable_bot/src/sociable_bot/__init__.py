@@ -53,7 +53,8 @@ __all__ = [
     # bot_types
     "export",
     "ImageType",
-    "ImageResult",
+    "ImageMimeType",
+    "Image",
     "Thread",
     "Button",
     "ButtonType",
