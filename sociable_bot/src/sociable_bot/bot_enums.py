@@ -151,16 +151,8 @@ class FileType(StrEnum):
 
 
 class BotTag(StrEnum):
-    CHAT = "chat"
-    """chat"""
-    MODERATOR = "moderator"
-    """moderator"""
-    TRANSLATOR = "translator"
-    """translator"""
     TOOL = "tool"
     """tool"""
-    FEED = "feed"
-    """feed"""
     DOC = "doc"
     """doc"""
     VIDEO = "video"

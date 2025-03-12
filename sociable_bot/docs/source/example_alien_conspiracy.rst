@@ -5,9 +5,6 @@ Alien Conspiracy
 
 This bot will create a post once per day. If you send it the message "post", it will create a new post immediately. The image & text instructions are at the top of source and easy to modify to change the type of content.
 
-.. warning::
-    Make sure to add the :ref:`feed and chat tag <concept_export>` to the bot
-
 .. admonition:: main.py
 
     .. code-block:: python
@@ -132,7 +129,7 @@ This bot will create a post once per day. If you send it the message "post", it 
                 title=title,
                 thumbnail=thumbnail,
                 markdown=story,
-                add_to_feed=not add_to_conversation,
+                scope=FileCreateScope.CONVERSATION if add_to_conversation else FileCreateScope.ALL
             )
 
             if add_to_conversation:

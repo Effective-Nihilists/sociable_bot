@@ -776,6 +776,15 @@ def conversation_context_menu_set(
     )
 
 
+class FileCreateScope(StrEnum):
+    CONVERSATION = "conversation"
+    """conversation"""
+    ALL = "all"
+    """all"""
+    PRIVATE = "private"
+    """private"""
+
+
 def file_create(
     type: FileType,
     title: str,
@@ -784,8 +793,7 @@ def file_create(
     thumbnail: Optional[Image] = None,
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
-    add_to_feed: Optional[bool] = None,
-    send_notification: Optional[bool] = None,
+    scope: Optional[FileCreateScope] = None,
 ) -> File:
     """
     Create file
@@ -801,8 +809,7 @@ def file_create(
                 "thumbnail": thumbnail,
                 "lang": lang,
                 "indexable": indexable,
-                "add_to_feed": add_to_feed,
-                "send_notification": send_notification,
+                "scope": scope,
             },
         )
     )

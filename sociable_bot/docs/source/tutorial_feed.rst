@@ -1,12 +1,11 @@
 Feed
 ==========================
 
-Bots can post content to their feed in two ways:
+Bots can create files/posts with 3 different scopes:
 
-#. Global - this is the normal concept of Feed where a Bot/User has a list of posts (or Files). The Bot needs to add the :ref:`feed tag <concept_export>` to allow users to follow them.
-#. Conversation - there are files add to a conversation that show up in the doc panel and as a message in the conversation. This does not require a special tag.
-
-Bots can post whenever they want, but the most common method is trigger based on a cron/hourly event.
+#. Private (default) - only this bot can see the file, generally useful for notes.
+#. Global - this will send message with the post to every conversation with this bot.
+#. Conversation - there are files add to a conversation that show up in the doc panel and as a message in the conversation.
 
 .. admonition:: main.py
 
@@ -33,6 +32,7 @@ Bots can post whenever they want, but the most common method is trigger based on
                 title="CHAT TITLE",
                 thumbnail=image,
                 markdown="CONTENT",
+                scope=FileCreateScope.CONVERSATION
             )
 
             message_send(files=[file])
@@ -46,7 +46,7 @@ Bots can post whenever they want, but the most common method is trigger based on
                 title="CHAT TITLE",
                 thumbnail=image,
                 markdown="CONTENT",
-                add_to_feed=True
+                scope=FileCreateScope.ALL
             )
 
         start()
@@ -60,4 +60,4 @@ Bots can post whenever they want, but the most common method is trigger based on
 * `text_gen <api.html#sociable_bot.text_gen>`_
 * `message_send <api.html#sociable_bot.message_send>`_
 * `TextGenMessage <api.html#sociable_bot.TextGenMessage>`_
-* `LiveUser <api.html#sociable_bot.LiveUser>`_
+* `FileCreateScope <api.html#sociable_bot.FileCreateScope>`_

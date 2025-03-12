@@ -15,11 +15,6 @@ Steps:
     #. Change template to "Custom Python Code"
     #. Click on "Create Bot"
 
-#. Set tag
-
-    #. Click on the box under "Tags" (it should say None)
-    #. Select "chat"
-
 #. Update main.py
 
     #. Click on "Code" tab

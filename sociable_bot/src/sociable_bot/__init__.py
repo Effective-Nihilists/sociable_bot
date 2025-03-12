@@ -37,6 +37,7 @@ __all__ = [
     "conversation_content_hide",
     "conversation_content_maximized",
     "file_get",
+    "FileCreateScope",
     "file_create",
     "file_update",
     "file_to_text_gen_message",

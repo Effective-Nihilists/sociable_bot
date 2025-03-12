@@ -263,6 +263,7 @@ class Bot:
     id: str
     name: str
     bio: str
+    tags: List[BotTag]
 
 
 @dataclass

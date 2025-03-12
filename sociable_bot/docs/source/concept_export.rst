@@ -15,13 +15,12 @@ A Bot exports functions, so Sociable can trigger different actions. There are so
         @export("message_direct")
         def message_direct(message: Message, conversation: Conversation):
             # This is called when a user sends a message:
-            # * in a 1:1 conversation with this bot, requires tag "chat"
-            # * mentions this bot in a message, requires tag "chat" or "tool"
+            # * in a 1:1 conversation with this bot
+            # * mentions this bot in a message
         
         @export("message_add")
         def message_add(message: Message, conversation: Conversation):
             # This is called when a user sends a message in a group chat
-            # requires tag "chat"
 
         @export("bot_hourly")
         def bot_hourly(hour: int):
@@ -43,7 +42,6 @@ A Bot exports functions, so Sociable can trigger different actions. There are so
         @export("conversation_user_add")
         def conversation_user_add(user: User, conversation: Conversation):
             # This is called when a user is added to a conversation
-            # requires tag "chat"
 
         @export("video_call_start")
         def video_call_start(video_call: VideoCall, conversation: Conversation):
@@ -68,7 +66,6 @@ A Bot exports functions, so Sociable can trigger different actions. There are so
         def thread_stop(thread: Thread):
             # This is called when a thread ends, all meetings are threads also 
             # user's can manually create new threads
-            # requires tag "chat"
 
         @export("input_changed")
         def input_changed(user_id: str, text: str):

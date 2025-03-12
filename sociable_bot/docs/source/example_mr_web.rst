@@ -10,7 +10,7 @@ This takes the basic web tutorial much further into a useful tool.
     ..  youtube:: Jnixc0lIbGQ
 
 .. warning::
-    This bot needs **chat**, **video**, and **web** tags to fully work. The bot's custom context menu is only available if the side panel is open and you are in chat with this bot.
+    This bot needs **video** and **web** tags to fully work. The bot's custom context menu is only available if the side panel is open and you are in chat with this bot.
 
 #######
 main.py
