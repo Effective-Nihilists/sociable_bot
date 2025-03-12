@@ -107,19 +107,24 @@ class Image:
 
     def __init__(
         self,
-        type: Optional[ImageType],
-        width: Optional[int],
-        height: Optional[int],
+        type: Optional[ImageType] = None,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
         base64: Optional[str] = None,
         mime_type: Optional[ImageMimeType] = None,
         uri: Optional[str] = None,
         prompt: Optional[str] = None,
         file: Optional[str] = None,
+        buffer: Optional[bytes] = None,
     ):
         if file is not None:
             with open(file, "rb") as f:
                 type = ImageType.BASE64
                 base64 = BASE64.b64encode(f.read()).decode()
+
+        if buffer is not None:
+            type = ImageType.BASE64
+            base64 = BASE64.b64encode(buffer).decode()
 
         self.type = (
             type
@@ -258,7 +263,6 @@ class Bot:
     id: str
     name: str
     bio: str
-    tags: List[BotTag]
 
 
 @dataclass
