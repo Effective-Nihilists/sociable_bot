@@ -3,9 +3,6 @@ Vision
 
 Open your bot's eyes
 
-.. warning::
-    Make sure to add the :ref:`video tag <concept_export>` to the bot
-
 .. admonition:: main.py
 
     .. code-block:: python
@@ -13,7 +10,7 @@ Open your bot's eyes
         
         from sociable_bot import *
 
-        @export("video_call_user_visible")
+        @export("user_visible")
         def example(live_user):
             text = text_gen(
                 model=TextGenModel.OPENAI_GPT_4O,
@@ -33,7 +30,7 @@ Open your bot's eyes
         start()
 
 .. note::
-    Vision requires an image, so we trigger on event :ref:`video_call_user_visible <concept_export>` which happens when a user becomes visible. Also, sending the image to the LLM requires a more complex message format.
+    Vision requires an image, so we trigger on event :ref:`user_visible <concept_export>` which happens when a user becomes visible. Also, sending the image to the LLM requires a more complex message format.
 
 
 **Glossary**

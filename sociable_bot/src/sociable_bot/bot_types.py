@@ -16,9 +16,7 @@ name_map = {
     "conversation_hourly": "conversationHourly",
     "conversation_start": "conversationStart",
     "conversation_user_add": "conversationUserAdd",
-    "video_call_start": "meetingStart",
-    "video_call_stop": "meetingStop",
-    "video_call_user_visible": "meetingUserVisible",
+    "user_visible": "userVisible",
     "thread_stop": "threadStop",
     "input_changed": "inputChanged",
     "web_page_updated": "webPageUpdated",
@@ -277,12 +275,6 @@ class File:
     thumbnail: Optional[Image] = None
     markdown: Optional[str] = None
     uri: Optional[str] = None
-
-
-@dataclass
-class VideoCall:
-    id: str
-    timezone: Timezone
 
 
 @dataclass

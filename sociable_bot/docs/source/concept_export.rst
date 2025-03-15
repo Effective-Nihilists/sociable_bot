@@ -43,29 +43,12 @@ A Bot exports functions, so Sociable can trigger different actions. There are so
         def conversation_user_add(user: User, conversation: Conversation):
             # This is called when a user is added to a conversation
 
-        @export("video_call_start")
-        def video_call_start(video_call: VideoCall, conversation: Conversation):
-            # This is called when a video call starts
-            # requires tag "video"
-
-        @export("video_call_stop")
-        def video_call_stop(video_call: VideoCall, conversation: Conversation):
-            # This is called when a video call ends
-            # requires tag "video"
-
-        @export("video_call_user_visible")
-        def video_call_user_visible(
+        @export("user_visible")
+        def user_visible(
             live: LiveUser, 
-            video_call: VideoCall, 
             conversation: Conversation
         ):
             # This is called when a user's video is available for the first time
-            # requires tag "video"
-
-        @export("thread_stop")
-        def thread_stop(thread: Thread):
-            # This is called when a thread ends, all meetings are threads also 
-            # user's can manually create new threads
 
         @export("input_changed")
         def input_changed(user_id: str, text: str):

@@ -106,17 +106,9 @@ def conversation_user_arg_map(dict: Dict[Any, Any]):
     }
 
 
-def meeting_arg_map(dict: Dict[Any, Any]):
-    return {
-        "video_call": VideoCall(**dict["meeting"]),
-        "conversation": Conversation(**dict["conversation"]),
-    }
-
-
 def live_user_visible_arg_map(dict: Dict[Any, Any]):
     return {
         "live_user": LiveUser(**dict["live_user"]),
-        "video_call": VideoCall(**dict["meeting"]),
         "conversation": Conversation(**dict["conversation"]),
     }
 
@@ -132,9 +124,7 @@ arg_map: Dict[str, Callable[[Dict[Any, Any]], Dict[Any, Any]]] = {
     "messageAdd": message_arg_map,
     "conversationStart": conversation_arg_map,
     "conversationUserAdd": conversation_arg_map,
-    "meetingStart": meeting_arg_map,
-    "meetingStop": meeting_arg_map,
-    "meetingUserVisible": live_user_visible_arg_map,
+    "userVisible": live_user_visible_arg_map,
     "threadStop": thread_arg_map,
 }
 

@@ -70,7 +70,6 @@ __all__ = [
     "LiveUser",
     "Bot",
     "File",
-    "VideoCall",
     "Conversation",
     "NewsArticle",
     "FileChunk",

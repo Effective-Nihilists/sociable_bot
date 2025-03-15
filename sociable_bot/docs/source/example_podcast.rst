@@ -30,21 +30,7 @@ main.py
                 content="",
                 human_id="",
             )
-
-
-        @export("video_call_start")
-        def video_call_start():
             context_init()
-
-
-        @export("video_call_stop")
-        def video_call_stop():
-            conversation_buttons_show(buttons=None)
-
-
-        @export("thread_stop")
-        def thread_stop(thread):
-            article_write(thread)
 
 
         @export("message_add")
@@ -372,6 +358,7 @@ podcast.py
                 ]
             )
 
+            article_write(thread)
 
         def podcast_message(data, conversation):
             message_typing()
