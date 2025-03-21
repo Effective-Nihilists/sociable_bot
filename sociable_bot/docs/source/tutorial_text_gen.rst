@@ -1,6 +1,8 @@
 Text Gen (LLM)
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=dO-0ZeajunivGXqAYUzGc>`_
+
 Let's build a really dumb chat bot that responds to the last message sent using text_gen (LLM).
 
 .. warning::

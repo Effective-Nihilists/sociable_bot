@@ -1,6 +1,11 @@
 Moderator
 ==========================
 
+`Example Bot <https://sociable.bot/botEdit?botId=eiIBX6_8qi5vEP2sMgbnu>`_
+
+`Example Group Chat <https://sociable.bot/app?templateId=hZED6DIN1Jhs8BW6HNO-Xb>`_
+
+
 Having a group chat with multiple bots is advanced. It is possible for every bot to individually look at the conversation and decide if it should reply. We found it very difficult to get the right level of engagement from bots using this technique, so we switched to using a silent moderator.
 
 #. Message Receieved
@@ -29,7 +34,7 @@ To test this, you will need to create a group chat that includes this bot plus a
 
             # Get all bots in the conversation that support the chat tag
             # excluding the current bot
-            bots = list(filter(lambda x: x.id != bot_id, conversation_bots(tag=BotTag.CHAT)))
+            bots = list(filter(lambda x: x.id != bot_id, conversation_bots()))
 
             # Convert the list to JSON like this
             # {

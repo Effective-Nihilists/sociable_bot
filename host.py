@@ -43,6 +43,8 @@ class BotInstance:
 host_port = int(os.environ.get("PORT", 8000))
 app_host = os.environ.get("APP_HOST", "localhost:3000")
 app_key = os.environ.get("APP_KEY", "567686a8-6fa1-4c34-88dc-4550154bbab7")
+proxy_scheme = os.environ.get("PROXY_SCHEME", "http")
+proxy_host = os.environ.get("PROXY_HOST", "localhost:8000")
 
 print("STARTING", host_port, __name__, app_host)
 
@@ -387,6 +389,9 @@ class FixOrigin(httpx.Auth):
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
         request.headers["origin"] = self.url
+        request.headers["Host"] = "python.sociable.bot"
+        request.headers["X-Forwarded-Host"] = proxy_host
+        request.headers["X-Forwarded-Proto"] = proxy_scheme
         yield request
 
 

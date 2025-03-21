@@ -18,4 +18,6 @@ This tutorial assumes that you already understand python. If you need a refreshe
    tutorial_feed
    tutorial_web_page
    tutorial_moderator
-   tutorial_server
+   tutorial_bokeh
+   tutorial_matplotlib
+   tutorial_gradio

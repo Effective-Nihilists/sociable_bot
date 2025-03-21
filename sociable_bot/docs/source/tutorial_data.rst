@@ -3,6 +3,8 @@
 Bot Data
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=ILsEsCbxkg4-cRvUlPHue>`_
+
 :ref:`concept_bot_lifetime` is not infinite, so you need someplace to store your data.
 
 .. note::

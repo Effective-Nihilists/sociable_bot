@@ -1,6 +1,8 @@
 Bot Params
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=A8vnD6HE-g2Lgqe8P5YX3>`_
+
 Make your bot customizable
 
 .. warning::
@@ -30,7 +32,7 @@ Make your bot customizable
 
         @export("message_direct")
         def example():
-            message_send(text=bot_params["name"])
+            message_send(text=getattr(bot_params, "name", "Not Set"))
 
 
         start()

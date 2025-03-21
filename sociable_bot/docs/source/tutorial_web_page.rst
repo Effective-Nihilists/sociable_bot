@@ -1,6 +1,8 @@
 Web Page
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=O8Hm8BciSvPEm7BUZ8LIK>`_
+
 Let's create a bot that will complain about the news. This bot requires a new Python package dependency which is handled by updating requirements.txt file.
 
 .. warning::

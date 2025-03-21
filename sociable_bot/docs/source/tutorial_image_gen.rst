@@ -1,6 +1,8 @@
 Image Gen
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=K3qdOoWYp1keN_zJ-EIbJ>`_
+
 Now, let's make some "art".
 
 .. warning::

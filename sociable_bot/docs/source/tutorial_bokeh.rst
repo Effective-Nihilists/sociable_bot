@@ -1,10 +1,9 @@
-Server
+Bokeh
 ==========================
 
-Many python libraries support running web servers to show interactive UI, like Gradio, Bokeh, Matplotlib. Sociable supports showing this content using a proxy server for HTTP & WebSockets. If you **conversation_content_show** a relative URL like "/" or "/hello" then we will show that content inside an iframe.
+`Example <https://sociable.bot/botEdit?botId=QarpudpQ7_EXFjKX3JDlO>`_
 
-Here is the full implementation:
-https://sociable.bot/botEdit?botId=xKVd3cZ_db7IGzI-Nf1PJ
+Many python libraries support running web servers to show interactive UI, like Gradio, Bokeh, Matplotlib. Sociable supports showing this content using a proxy server for HTTP & WebSockets. If you **conversation_content_show** a relative URL like "/" or "/hello" then we will show that content inside an iframe.
 
 .. admonition:: Walkthrough
     

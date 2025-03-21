@@ -1,6 +1,8 @@
 Buttons
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=ID1qpW_Dl9nVpcbbkVN5L>`_
+
 Add some basic interactivity
 
 .. warning::

@@ -3,6 +3,8 @@
 Mr. Web
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=idlXnAHKbn45PwrJWOuua>`_
+
 This takes the basic web tutorial much further into a useful tool.
 
 .. admonition:: Walkthrough

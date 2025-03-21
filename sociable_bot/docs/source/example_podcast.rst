@@ -3,6 +3,8 @@
 Podcaster
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=idlXnAHKbn45PwrJWOuua>`_
+
 The podcast setup is basically the same as Moderator. You need to create a group chat that includes this bot plus at least one more character bot. The start a video call, select the topic, and start podcast.
 
 .. admonition:: Walkthrough

@@ -1,6 +1,8 @@
 Chat Bot
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=wlbrRGItWlEZZMRRkZieL>`_
+
 Let's build ChatGPT
 
 .. admonition:: main.py

@@ -1,6 +1,8 @@
 Text Gen Functions
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=d0_2ddm83zciWOQn8hc1M>`_
+
 Many of the LLM models support function calling.
 
 .. admonition:: main.py

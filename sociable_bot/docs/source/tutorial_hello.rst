@@ -3,6 +3,8 @@
 Hello World
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=idlXnAHKbn45PwrJWOuua>`_
+
 In this simple example, the bot will send a message every time a new conversation is started. You can restart your conversation by selecting "Wipe" from "..." in a conversation.
 
 Steps:

@@ -1,6 +1,8 @@
 Tool
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=LjzzU4K1y3fmRi5Teyepz>`_
+
 Tools are bots that can be used in any conversation.
 
 .. warning::

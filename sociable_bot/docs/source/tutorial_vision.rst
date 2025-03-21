@@ -1,6 +1,8 @@
 Vision
 ==========================
 
+`Example <https://sociable.bot/botEdit?botId=E5w-ERySWfVEspWJZBwQz>`_
+
 Open your bot's eyes
 
 .. admonition:: main.py

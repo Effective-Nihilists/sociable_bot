@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sys
+import threading
 import typing
 from dataclasses import asdict, dataclass, is_dataclass
 from shutil import Error
@@ -195,10 +196,7 @@ def start():
     for call in calls:
         call_no_return(call.op, call.params, call.case_change)
 
-    while True:
-        message = sys.stdin.readline()[:-1]
-        if len(message) > 0:
-            run_call(message)
+    message_read_loop()
 
 
 def run_call(message: str):
@@ -230,21 +228,16 @@ def start_nonblocking():
     for call in calls:
         call_no_return(call.op, call.params, call.case_change)
 
-    asyncio.get_event_loop().add_reader(
-        sys.stdin,
-        message_read_loop,
-    )
+    thread = threading.Thread(target=message_read_loop)
+    thread.start()
     print("[BOT] start done", app_host)
 
 
 def message_read_loop():
-    message = sys.stdin.readline()
-    if len(message) == 0:
-        # print("[READER] done and empty")
-        asyncio.get_event_loop().remove_reader(sys.stdin)
-        return
-
-    run_call(message)
+    while True:
+        message = sys.stdin.readline()[:-1]
+        if len(message) > 0:
+            run_call(message)
 
 
 def call_return(op: str, params: dict, case_change: bool = True) -> Any:
@@ -424,6 +417,40 @@ def message_send(
                 "impersonate_user_id": impersonate_user_id,
                 "file_ids": [file.id for file in files] if files is not None else None,
                 "thread": thread,
+            },
+        )
+    )
+
+
+def message_post(
+    text: Optional[str] = None,
+    image: Optional[Image] = None,
+    images: Optional[List[Image]] = None,
+    markdown: Optional[str] = None,
+    lang: Optional[UserLang] = None,
+    visibility: Optional[MessageVisibility] = None,
+    color: Optional[MessageColor] = None,
+    buttons: Optional[List[Button]] = None,
+    mood: Optional[Mood] = None,
+    files: Optional[List[File]] = None,
+) -> Message:
+    """
+    Send a message to the active conversation
+    """
+    return Message(
+        **call_return(
+            "botCodeMessagePost",
+            {
+                "text": text,
+                "markdown": markdown,
+                "image": image,
+                "images": images,
+                "lang": lang,
+                "visibility": visibility,
+                "color": color,
+                "buttons": buttons,
+                "mood": mood,
+                "file_ids": [file.id for file in files] if files is not None else None,
             },
         )
     )
@@ -766,15 +793,6 @@ def conversation_context_menu_set(
     )
 
 
-class FileCreateScope(StrEnum):
-    CONVERSATION = "conversation"
-    """conversation"""
-    ALL = "all"
-    """all"""
-    PRIVATE = "private"
-    """private"""
-
-
 def file_create(
     type: FileType,
     title: str,
@@ -783,7 +801,6 @@ def file_create(
     thumbnail: Optional[Image] = None,
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
-    scope: Optional[FileCreateScope] = None,
 ) -> File:
     """
     Create file
@@ -799,7 +816,6 @@ def file_create(
                 "thumbnail": thumbnail,
                 "lang": lang,
                 "indexable": indexable,
-                "scope": scope,
             },
         )
     )

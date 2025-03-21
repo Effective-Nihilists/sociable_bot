@@ -1,11 +1,9 @@
 Feed
 ==========================
 
-Bots can create files/posts with 3 different scopes:
+`Example <https://sociable.bot/botEdit?botId=ww9leCZ-F_T7kDvSJ5C-j>`_
 
-#. Private (default) - only this bot can see the file, generally useful for notes.
-#. Global - this will send message with the post to every conversation with this bot.
-#. Conversation - there are files add to a conversation that show up in the doc panel and as a message in the conversation.
+Bots can post a file to all of their 1:1 conversations, this is equivalent to posting on a social network.
 
 .. admonition:: main.py
 
@@ -16,15 +14,11 @@ Bots can create files/posts with 3 different scopes:
 
         @export("message_direct")
         def send(message):
-            if message.text == "global":
+            if message.text == "post":
                 bot_hourly(0)
-            if message.text == "conversation":
-                conversation_hourly(0)
 
-        @export("conversation_hourly")
-        def conversation_hourly(hour):
-            log("conversation_hourly")
-
+        @export("bot_hourly")
+        def bot_hourly(hour):
             image = image_gen(prompt="a picture")
 
             file = file_create(
@@ -32,22 +26,9 @@ Bots can create files/posts with 3 different scopes:
                 title="CHAT TITLE",
                 thumbnail=image,
                 markdown="CONTENT",
-                scope=FileCreateScope.CONVERSATION
             )
 
-            message_send(files=[file])
-
-        @export("bot_hourly")
-        def bot_hourly(hour):
-            image = image_gen(prompt="a picture")
-
-            file_create(
-                type=FileType.MARKDOWN,
-                title="CHAT TITLE",
-                thumbnail=image,
-                markdown="CONTENT",
-                scope=FileCreateScope.ALL
-            )
+            message_post(files = [file])
 
         start()
 
@@ -58,6 +39,5 @@ Bots can create files/posts with 3 different scopes:
 
 * `TextGenModel <api.html#sociable_bot.TextGenModel>`_
 * `text_gen <api.html#sociable_bot.text_gen>`_
-* `message_send <api.html#sociable_bot.message_send>`_
+* `message_post <api.html#sociable_bot.message_post>`_
 * `TextGenMessage <api.html#sociable_bot.TextGenMessage>`_
-* `FileCreateScope <api.html#sociable_bot.FileCreateScope>`_
