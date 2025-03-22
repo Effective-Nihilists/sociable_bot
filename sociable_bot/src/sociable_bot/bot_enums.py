@@ -78,6 +78,8 @@ class MessageColor(StrEnum):
     """accent"""
     ERROR = "error"
     """error"""
+    NOTICE = "notice"
+    """notice"""
 
 
 class Mood(StrEnum):

@@ -1,9 +1,11 @@
 .. _example_podcast:
 
-Podcaster
+Jessica Podcast
 ==========================
 
-`Example <https://sociable.bot/botEdit?botId=idlXnAHKbn45PwrJWOuua>`_
+`Example Bot <https://sociable.bot/botEdit?botId=idlXnAHKbn45PwrJWOuua>`_
+
+`Example Chat <https://sociable.bot/app?templateId=ofo0E0acIzj5CYDRd-Fj-b>`_
 
 The podcast setup is basically the same as Moderator. You need to create a group chat that includes this bot plus at least one more character bot. The start a video call, select the topic, and start podcast.
 
@@ -12,9 +14,8 @@ The podcast setup is basically the same as Moderator. You need to create a group
     ..  youtube:: hc7icH3KXsk
 
 
-#######
-main.py
-#######
+.. admonition:: main.py
+
     .. code-block:: python
         :name: code
         
@@ -48,9 +49,8 @@ main.py
         start()
 
 
-##########
-context.py
-##########
+.. admonition:: context.py
+
     .. code-block:: python
 
         from sociable_bot import *
@@ -141,9 +141,7 @@ context.py
             buttons_update(data)
 
 
-##########
-article.py
-##########
+.. admonition:: article.py
 
     .. code-block:: python
 
@@ -152,14 +150,14 @@ article.py
         from config import article_instruction, article_image_instruction, model
 
 
-        def article_write(thread: Thread):
+        def article_write(start: int):
             message_id = generate()
             message_send(
                 id=message_id,
                 text="creating content...",
             )
 
-            messages = message_history(limit=100, thread_id=thread.id)
+            messages = message_history(start=start)
 
             story = text_gen(
                 model=model,
@@ -228,23 +226,24 @@ article.py
 
             message_send(files=[file])
 
-##########
-podcast.py
-##########
+
+.. admonition:: podcast.py
 
     .. code-block:: python
 
         from sociable_bot import *
         from config import model, temperature, podcast_instruction, bot_intros
         import json
+        import time
+        from article import article_write
 
 
         @export("podcast_start")
         def podcast_start():
-            data = data_set(mode="podcast")
+            data = data_set(mode="podcast", podcast_start=int(round(time.time() * 1000)))
             conversation = conversation_get(conversation_id)
             human = user_get(data.human_id)
-            bots = list(filter(lambda x: x.id != bot_id, conversation_bots(tag=BotTag.CHAT)))
+            bots = list(filter(lambda x: x.id != bot_id, conversation_bots()))
             host = user_get(bot_id)
 
             conversation_buttons_show(
@@ -302,8 +301,8 @@ podcast.py
                 for x in bots:
                     message_send(
                         mention_user_ids=[x.id],
-                        visibility=message_visibility.silent,
-                        color=message_color.error,
+                        visibility=MessageVisibility.SILENT,
+                        color=MessageColor.ERROR,
                         text="introduce yourself and react to the last message",
                     )
 
@@ -360,14 +359,16 @@ podcast.py
                 ]
             )
 
-            article_write(thread)
+            article_write(start=data.podcast_start)
+
+
 
         def podcast_message(data, conversation):
             message_typing()
             messages = message_history(limit=50)
 
             human = user_get(data.human_id)
-            bots = list(filter(lambda x: x.id != bot_id, conversation_bots(tag=BotTag.CHAT)))
+            bots = list(filter(lambda x: x.id != bot_id, conversation_bots()))
             host = user_get(bot_id)
 
             bot_bios = "\n\n".join(
@@ -415,7 +416,7 @@ podcast.py
 
             # _get all bots in the conversation that support the chat tag
             # excluding the current bot
-            bots = list(filter(lambda x: x.id != bot_id, conversation_bots(tag=BotTag.CHAT)))
+            bots = list(filter(lambda x: x.id != bot_id, conversation_bots()))
 
             # convert the list to json like this
             # {
@@ -483,9 +484,8 @@ podcast.py
                     text="write a reply",
                 )
 
-##########
-config.py
-##########
+
+.. admonition:: config.py
 
     .. code-block:: python
 
@@ -548,9 +548,7 @@ config.py
         bot_intros = bot_params.bot_intros if hasattr(bot_params, "bot_intros") else True
 
 
-############
-params.json
-############
+.. admonition:: params.json
 
     .. code-block:: json
 
@@ -616,9 +614,7 @@ params.json
             }
         }
 
-################
-requirements.txt
-################
+.. admonition:: requirements.txt
 
     .. code-block:: text
         :name: requirements

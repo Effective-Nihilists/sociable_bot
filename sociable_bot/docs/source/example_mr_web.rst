@@ -3,7 +3,7 @@
 Mr. Web
 ==========================
 
-`Example <https://sociable.bot/botEdit?botId=idlXnAHKbn45PwrJWOuua>`_
+`Example <https://sociable.bot/botEdit?botId=yF9k4NE0hzTjiHJeIB6O6>`_
 
 This takes the basic web tutorial much further into a useful tool.
 
@@ -14,9 +14,8 @@ This takes the basic web tutorial much further into a useful tool.
 .. warning::
     This bot needs **video** and **web** tags to fully work. The bot's custom context menu is only available if the side panel is open and you are in chat with this bot.
 
-#######
-main.py
-#######
+.. admonition:: main.py
+
     .. code-block:: python
         :name: code
         
@@ -157,9 +156,7 @@ main.py
         start()
 
 
-################
-requirements.txt
-################
+.. admonition:: requirements.txt
 
     .. code-block:: text
         :name: requirements

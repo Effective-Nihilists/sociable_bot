@@ -3,9 +3,9 @@
 Alien Conspiracy
 ==========================
 
-`Example <https://sociable.bot/botEdit?botId=idlXnAHKbn45PwrJWOuua>`_
+`Example <https://sociable.bot/botEdit?botId=6QIMGpzUEML8U6G9Uai7b>`_
 
-This bot will create a post once per day. If you send it the message "post", it will create a new post immediately. The image & text instructions are at the top of source and easy to modify to change the type of content.
+This bot will create a post once per day. If you send it the message "post", it will create a new post immediately. The image & text instructions are at the top of source and easy to modify to change the type of content. This bots uses custom parameters, so you can change key details without modifying the code.
 
 .. admonition:: main.py
 
@@ -16,11 +16,11 @@ This bot will create a post once per day. If you send it the message "post", it 
         from nanoid import generate
         import time
 
-        instruction = (
-            "Write a news story about how this was caused by a secret alien conspiracy"
+        instruction = getattr(bot_params, "text_instruction", "Write a news story")
+        query = getattr(bot_params, "query", "news")
+        image_instruction = getattr(
+            bot_params, "image_instruction", "Use a serious professional style"
         )
-        query = "News"
-        image_instruction= "Make everything look like an alien conspiracy using a dark sci-fi style"
 
 
         def create_post(add_to_conversation: bool, query: str):
@@ -30,7 +30,9 @@ This bot will create a post once per day. If you send it the message "post", it 
             if add_to_conversation:
                 message_send(id=message_id, text="Searching news...")
 
-            news = query_news(query=query, created=(time.time() - 24 * 60 * 60) * 1000, limit=20)
+            news = query_news(
+                query=query, created=(time.time() - 24 * 60 * 60) * 1000, limit=20
+            )
 
             if add_to_conversation:
                 message_edit(id=message_id, text="Selecting story...")
@@ -51,7 +53,7 @@ This bot will create a post once per day. If you send it the message "post", it 
         {previous_news_stories_text}
         --------------
 
-        Based on the Recent News Stories, and the query "{query}" select the most interesting news story that is different from previous news stories. 
+        Based on the Recent News Stories, and the query "{query}" select the most interesting news story that is different from previous news stories.
         Do not select a story that is too similar to previous news stories.
 
         Return the only one story. Do not mention other interesting stories.
@@ -131,11 +133,12 @@ This bot will create a post once per day. If you send it the message "post", it 
                 title=title,
                 thumbnail=thumbnail,
                 markdown=story,
-                scope=FileCreateScope.CONVERSATION if add_to_conversation else FileCreateScope.ALL
             )
 
             if add_to_conversation:
                 message_send(files=[file])
+            else:
+                message_post(files=[file])
 
 
         @export("search_news")
@@ -168,7 +171,7 @@ This bot will create a post once per day. If you send it the message "post", it 
 
             message_typing()
             text = text_gen(
-                model=TextGenModel.OPENAI_GPT_4O,
+                model=TextGenModel.TOGETHER_META_LLAMA_3_70B,
                 tools=[tool_search_news],
                 instruction=instruction,
                 messages=message_history(duration=24 * 60 * 60 * 1000, limit=500),
@@ -185,23 +188,44 @@ This bot will create a post once per day. If you send it the message "post", it 
             create_post(False, query=query)
 
 
-        @export("conversation_hourly")
-        def conversation_hourly(hour, conversation):
-            if hour != 12:
-                return
-
-            if conversation.type != ConversationType.GROUP:
-                return
-
-            create_post(True, query=query)
-
-
         @export("conversation_start")
         def init():
             data_set(previous_stories=[])
+            message_send(
+                text="Hi. I can answer questions about the news and will send you a news article every day."
+            )
 
 
         start()
+
+
+.. admonition:: params.json
+
+    .. code-block:: json
+        :name: params
+        
+        {
+        "type": "object",
+        "properties": {
+            "query": {
+            "type": "string",
+            "title": "Topic"
+            },
+            "image_instruction": {
+            "type": "string",
+            "title": "Image Instruction"
+            },
+            "text_instruction": {
+            "type": "string",
+            "title": "Text Instruction"
+            }
+        },
+        "default": {
+            "query": "news",
+            "image_instruction": "Use a serious professional style",
+            "text_instruction": "Write a news story"
+        }
+        }
 
 
 .. admonition:: requirements.txt
