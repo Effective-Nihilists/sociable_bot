@@ -351,6 +351,8 @@ class TextGenModel(StrEnum):
     """together_mixtral_8x7b"""
     TOGETHER_MIXTRAL_8X22B = "together_mixtral_8x22b"
     """together_mixtral_8x22b"""
+    TOGETHER_MISTRAL_24B = "together_mistral_24b"
+    """together_mistral_24b"""
     TOGETHER_META_LLAMA_3_8B = "together_meta_llama_3_8b"
     """together_meta_llama_3_8b"""
     TOGETHER_META_LLAMA_3_70B = "together_meta_llama_3_70b"
