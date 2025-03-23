@@ -3,7 +3,7 @@ Cost
 ==========================
 
 Sociable uses pre-paid charging model. Everyone gets some credit to start out and then they need to add funds to continue to use any of the paid services, covered in detail here:
-`Detailed Pricing <https://sociable.bot/pricingByService>`_
+`Detailed Pricing <https://sociable.bot/pricing>`_
 
 By default the costs of using a bot are divided evenly amongst the owners of a conversations. Unless the bot owner sets the "Billing" field to specifically charge their account.
 
