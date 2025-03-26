@@ -16,6 +16,7 @@ name_map = {
     "conversation_hourly": "conversationHourly",
     "conversation_start": "conversationStart",
     "conversation_user_add": "conversationUserAdd",
+    "conversation_user_show": "conversationUserShow",
     "user_visible": "userVisible",
     "thread_stop": "threadStop",
     "input_changed": "inputChanged",

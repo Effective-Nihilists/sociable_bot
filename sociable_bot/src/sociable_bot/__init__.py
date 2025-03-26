@@ -37,6 +37,7 @@ __all__ = [
     "conversation_content_show",
     "conversation_content_hide",
     "conversation_content_maximized",
+    "conversation_cron_extend",
     "file_get",
     "file_create",
     "file_update",

@@ -688,6 +688,20 @@ def conversation_bots(tag: Optional[BotTag] = None) -> List[Bot]:
     return list(map(lambda m: Bot(**m), result))
 
 
+def conversation_cron_extend(
+    end: Optional[int] = None,
+) -> None:
+    """
+    Extends the end of cron jobs for this conversation
+    """
+    call_no_return(
+        "botCodeConversationCronExtend",
+        {
+            "end": end,
+        },
+    )
+
+
 def conversation_content_show(
     type: ConversationContentType = ConversationContentType.URI,
     file_id: Optional[str] = None,

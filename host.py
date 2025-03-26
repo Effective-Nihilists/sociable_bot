@@ -110,19 +110,6 @@ async def bot_instance_get(
 ) -> Optional[BotInstance]:
     global bot_instances, bot_containers
 
-    bot_container_key = f"{bot_id}-{updated}"
-    bot_instance_key = f"{bot_id}-{updated}-{conversation_id}-{conversation_thread_id}"
-    bot_instance = bot_instances.get(bot_instance_key)
-    if bot_instance is not None and bot_instance.process.poll() is None:
-        try:
-            bot_instance.last_message = time.time()
-            return bot_instance
-        except Exception as e:
-            print(f"[BOT] {bot_instance_key} failed to send command", e)
-
-    if bot_instance is not None:
-        bot_instance_kill(bot_instance_key)
-
     # Get bot python code and JWT and bot params
     response = requests.post(
         f"http://{app_host}/request",
@@ -137,7 +124,22 @@ async def bot_instance_get(
     )
 
     output = response.json()
+    bot_code_id = output.get("botCodeId")
+    bot_code_updated = output.get("botCodeUpdated")
     # print("Response:", json.dumps(output, indent=4))
+
+    bot_container_key = f"{bot_code_id}-{bot_code_updated}"
+    bot_instance_key = f"{bot_id}-{updated}-{conversation_id}-{conversation_thread_id}"
+    bot_instance = bot_instances.get(bot_instance_key)
+    if bot_instance is not None and bot_instance.process.poll() is None:
+        try:
+            bot_instance.last_message = time.time()
+            return bot_instance
+        except Exception as e:
+            print(f"[BOT] {bot_instance_key} failed to send command", e)
+
+    if bot_instance is not None:
+        bot_instance_kill(bot_instance_key)
 
     bot_container = bot_containers.get(bot_container_key)
     if bot_container is None:
@@ -152,7 +154,7 @@ async def bot_instance_get(
                 "input": {
                     "context": {
                         "botId": bot_id,
-                        "botCodeId": output.get("botCodeId"),
+                        "botCodeId": bot_code_id,
                         "conversationId": conversation_id,
                         "conversationThreadId": conversation_thread_id,
                         "chargeUserIds": output.get("chargeUserIds"),
@@ -177,7 +179,7 @@ async def bot_instance_get(
         json.dumps(
             {
                 "botId": bot_id,
-                "botCodeId": output.get("botCodeId"),
+                "botCodeId": bot_code_id,
                 "conversationId": conversation_id,
                 "conversationThreadId": conversation_thread_id,
                 "chargeUserIds": output.get("chargeUserIds"),
@@ -200,7 +202,7 @@ async def bot_instance_get(
 
     context = {
         "botId": bot_id,
-        "botCodeId": output.get("botCodeId"),
+        "botCodeId": bot_code_id,
         "conversationId": conversation_id,
         "conversationThreadId": conversation_thread_id,
         "chargeUserIds": output.get("chargeUserIds"),
