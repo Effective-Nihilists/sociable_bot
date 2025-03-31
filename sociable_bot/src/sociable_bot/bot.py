@@ -6,7 +6,6 @@ import sys
 import threading
 import typing
 from dataclasses import asdict, dataclass, is_dataclass
-from shutil import Error
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -242,7 +241,7 @@ def message_read_loop():
 
 def call_return(op: str, params: dict, case_change: bool = True) -> Any:
     if not started:
-        raise Error(
+        raise Exception(
             "You cannot call bot functions that require a return value until after start()"
         )
 
@@ -260,15 +259,18 @@ def call_return(op: str, params: dict, case_change: bool = True) -> Any:
             },
         },
     )
-    # print("[BOT] client socket send result", result)
+
+    if result is None:
+        raise Exception("Invalid response")
+
+    error = result.get("error")
+    if error is not None:
+        raise Exception(error)
+
     return (
-        (
-            convert_keys_to_snake_case(result.get("data"))
-            if case_change
-            else result.get("data")
-        )
-        if result is not None
-        else None
+        convert_keys_to_snake_case(result.get("data"))
+        if case_change
+        else result.get("data")
     )
 
 
@@ -279,7 +281,7 @@ def call_no_return(op: str, params: Any, case_change: bool = True) -> None:
 
     converted = convert_to_dict(params)
     # print("[BOT] client socket send", op, bot_context, converted)
-    sio.call(
+    result = sio.call(
         "call",
         {
             "op": op,
@@ -291,6 +293,13 @@ def call_no_return(op: str, params: Any, case_change: bool = True) -> None:
             },
         },
     )
+
+    if result is None:
+        raise Exception("Invalid response")
+
+    error = result.get("error")
+    if error is not None:
+        raise Exception(error)
 
 
 def conversation_get(id: str) -> Optional[Conversation]:

@@ -10,7 +10,6 @@ import uuid
 from collections.abc import Generator
 from contextlib import closing
 from dataclasses import dataclass
-from shutil import Error
 from subprocess import PIPE, Popen
 from typing import Optional
 
@@ -214,7 +213,7 @@ async def bot_instance_get(
         )
 
     if process.stdout is None:
-        raise Error("[BOT] has no stdout")
+        raise Exception("[BOT] has no stdout")
 
     poll_obj = select.poll()
     poll_obj.register(process.stdout, select.POLLIN)
