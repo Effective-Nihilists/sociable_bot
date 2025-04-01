@@ -442,26 +442,24 @@ def message_post(
     buttons: Optional[List[Button]] = None,
     mood: Optional[Mood] = None,
     files: Optional[List[File]] = None,
-) -> Message:
+) -> None:
     """
     Send a message to the active conversation
     """
-    return Message(
-        **call_return(
-            "botCodeMessagePost",
-            {
-                "text": text,
-                "markdown": markdown,
-                "image": image,
-                "images": images,
-                "lang": lang,
-                "visibility": visibility,
-                "color": color,
-                "buttons": buttons,
-                "mood": mood,
-                "file_ids": [file.id for file in files] if files is not None else None,
-            },
-        )
+    call_no_return(
+        "botCodeMessagePost",
+        {
+            "text": text,
+            "markdown": markdown,
+            "image": image,
+            "images": images,
+            "lang": lang,
+            "visibility": visibility,
+            "color": color,
+            "buttons": buttons,
+            "mood": mood,
+            "file_ids": [file.id for file in files] if files is not None else None,
+        },
     )
 
 
