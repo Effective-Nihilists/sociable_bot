@@ -266,6 +266,13 @@ class Bot:
 
 
 @dataclass
+class Character:
+    image: Image
+    name: str
+    voice_id: str
+
+
+@dataclass
 class File:
     id: str
     user_id: str
@@ -276,6 +283,7 @@ class File:
     thumbnail: Optional[Image] = None
     markdown: Optional[str] = None
     uri: Optional[str] = None
+    characters: Optional[Dict[str, Character]] = None
 
 
 @dataclass

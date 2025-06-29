@@ -822,6 +822,7 @@ def file_create(
     thumbnail: Optional[Image] = None,
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
+    characters: Optional[Dict[str, Character]] = None,
 ) -> File:
     """
     Create file
@@ -837,6 +838,7 @@ def file_create(
                 "thumbnail": thumbnail,
                 "lang": lang,
                 "indexable": indexable,
+                "characters": characters,
             },
         )
     )
@@ -851,7 +853,7 @@ def file_update(
     """
     Update file, only supported on markdown files
     """
-    call_return(
+    call_no_return(
         "botCodeFileUpdate",
         {
             "id": id,
@@ -860,6 +862,90 @@ def file_update(
             "thumbnail": thumbnail,
         },
     )
+
+
+def file_book_character_set(
+    file_id: str,
+    character_id: str,
+    image: Image,
+    name: str,
+    voice_id: str,
+) -> None:
+    """
+    Set book character
+    """
+    call_no_return(
+        "botCodeFileBookCharacterSet",
+        {
+            "file_id": file_id,
+            "character_id": character_id,
+            "image": image,
+            "name": name,
+            "voice_id": voice_id,
+        },
+    )
+
+
+def file_book_page_add(
+    file_id: str,
+    image: Optional[Image] = None,
+) -> int:
+    """
+    Create book page
+    """
+    result: Dict[Any, Any] = call_return(
+        "botCodeFileBookPageSet",
+        {
+            "file_id": file_id,
+            "image": image,
+        },
+    )
+
+    return result.get("page_index", 0)
+
+
+def file_book_page_line_add(
+    file_id: str,
+    page_index: int,
+    character_id: str,
+    markdown: str,
+) -> int:
+    """
+    Create book page line
+    """
+    result: Dict[Any, Any] = call_return(
+        "botCodeFileBookPageLineSet",
+        {
+            "file_id": file_id,
+            "page_index": page_index,
+            "line": {
+                "character_id": character_id,
+                "markdown": markdown,
+            },
+        },
+    )
+
+    return result.get("line_index", 0)
+
+
+def file_book_user_context_set(
+    file_id: str,
+    page_index: Optional[int] = None,
+    line_index: Optional[int] = None,
+) -> int:
+    """
+    Create book page line
+    """
+    return call_return(
+        "botCodeFileBookUserContextSet",
+        {
+            "file_id": file_id,
+            "fields": {
+                "page_index": page_index,
+                "line_index": line_index,
+            },
+        },
+    ).line_index
 
 
 def file_to_text_gen_message(

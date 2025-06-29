@@ -150,6 +150,8 @@ class FileType(StrEnum):
     """audio"""
     VIDEO = "video"
     """video"""
+    BOOK = "book"
+    """book"""
 
 
 class BotTag(StrEnum):
