@@ -347,13 +347,6 @@ class FileSection:
 
 
 @dataclass
-class Event:
-    id: str
-    start: int
-    end: int
-
-
-@dataclass
 class WebPageData:
     html: str
     url: str

@@ -535,7 +535,7 @@ def text_gen(
     tools: Optional[List[TextGenTool]] = None,
     include_files: Optional[bool] = None,
     json: Optional[Dict[str, Any]] = None,
-) -> str:
+) -> Optional[str]:
     """
     Generate text using the specified model (LLM)
     """

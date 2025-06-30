@@ -84,7 +84,6 @@ __all__ = [
     "ConversationContent",
     "FileSectionType",
     "FileSection",
-    "Event",
     "WebPageData",
     "KagiSearchItem",
     "KagiSearchOutput",
