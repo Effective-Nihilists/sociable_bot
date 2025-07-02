@@ -161,16 +161,22 @@ class ButtonType(StrEnum):
     BUTTON = "button"
     """button"""
 
+    MENU = "menu"
+    """menu"""
+
 
 @dataclass
 class Button:
     type: ButtonType
-    text: str
+    icon: Optional[Icon] = None
+    text: Optional[str] = None
     lang: Optional[UserLang] = None
     func: Optional[str] = None
     uri: Optional[str] = None
     params: Optional[Dict[str, Any]] = None
-    mode: Optional[ButtonMode] = None
+    buttons: Optional[List["Button"]] = None
+    selected: Optional[bool] = None
+    disabled: Optional[bool] = None
 
 
 @dataclass

@@ -101,18 +101,7 @@ class Mood(StrEnum):
     """sleep"""
 
 
-class ButtonMode(StrEnum):
-    PRIMARY = "primary"
-    """primary"""
-    DEFAULT = "default"
-    """default"""
-    ERROR = "error"
-    """error"""
-    DEBUG = "debug"
-    """debug"""
-
-
-class MessageIcon(StrEnum):
+class Icon(StrEnum):
     WEB = "web"
     """web"""
     INSTAGRAM = "instagram"
@@ -133,6 +122,12 @@ class MessageIcon(StrEnum):
     """whatsapp"""
     SNAPCHAT = "snapchat"
     """snapchat"""
+    IMAGE = "image"
+    """image"""
+    SETTINGS = "settings"
+    """settings"""
+    CHAT = "chat"
+    """chat"""
 
 
 class FileType(StrEnum):
