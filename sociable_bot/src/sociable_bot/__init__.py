@@ -20,6 +20,7 @@ __all__ = [
     "message_send",
     "message_post",
     "message_edit",
+    "message_delete",
     "messages_to_text",
     "message_history",
     "text_gen",

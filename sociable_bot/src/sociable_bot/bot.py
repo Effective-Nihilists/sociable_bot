@@ -481,6 +481,22 @@ def message_edit(
     )
 
 
+def message_delete(
+    id: str,
+) -> Message:
+    """
+    Delete an existing message
+    """
+    return Message(
+        **call_return(
+            "botCodeMessageDelete",
+            {
+                "id": id,
+            },
+        )
+    )
+
+
 def messages_to_text(
     messages: List[Message], strip_names: Optional[bool] = None
 ) -> str:
