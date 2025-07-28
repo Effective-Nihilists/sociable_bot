@@ -483,17 +483,15 @@ def message_edit(
 
 def message_delete(
     id: str,
-) -> Message:
+) -> None:
     """
     Delete an existing message
     """
-    return Message(
-        **call_return(
-            "botCodeMessageDelete",
-            {
-                "id": id,
-            },
-        )
+    return call_no_return(
+        "botCodeMessageDelete",
+        {
+            "id": id,
+        },
     )
 
 
