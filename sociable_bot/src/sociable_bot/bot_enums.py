@@ -35,23 +35,19 @@ class UserLang(StrEnum):
 
 
 class ImageGenModel(StrEnum):
-    FAL_SDXL = "fal_sdxl"
-    """fal_sdxl"""
-    FAL_SDXL_LIGHTNING = "fal_sdxl_lightning"
-    """fal_sdxl_lightning"""
     FAL_SD3 = "fal_sd3"
     """fal_sd3"""
-    FAL_FLUX_SCHNELL = "fal_flux_schnell"
-    """fal_flux_schnell"""
     FAL_FLUX_DEV = "fal_flux_dev"
     """fal_flux_dev"""
     FAL_FLUX_PRO = "fal_flux_pro"
     """fal_flux_pro"""
+    FAL_BRIA = "fal_bria"
+    """fal_bria"""
+    FAL_IMAGEN4 = "fal_imagen4"
+    """fal_imagen4"""
 
 
 class ImageGenSize(StrEnum):
-    SQUARE_HD = "square_hd"
-    """square_hd"""
     SQUARE = "square"
     """square"""
     PORTRAIT_4_3 = "portrait_4_3"
