@@ -43,8 +43,6 @@ class ImageGenModel(StrEnum):
     """fal_flux_pro"""
     FAL_BRIA = "fal_bria"
     """fal_bria"""
-    FAL_IMAGEN4 = "fal_imagen4"
-    """fal_imagen4"""
 
 
 class ImageGenSize(StrEnum):
