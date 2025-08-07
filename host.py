@@ -390,7 +390,7 @@ class FixOrigin(httpx.Auth):
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
         request.headers["origin"] = self.url
-        request.headers["Host"] = "python.sociable.bot"
+        request.headers["Host"] = "python.ugly.bot"
         request.headers["X-Forwarded-Host"] = proxy_host
         request.headers["X-Forwarded-Proto"] = proxy_scheme
         yield request

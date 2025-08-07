@@ -1,4 +1,4 @@
-pushd sociable_bot
+pushd ugly_bot
 
 rm -r dist
 python -m build   

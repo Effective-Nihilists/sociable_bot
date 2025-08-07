@@ -2,6 +2,6 @@ __pycache__
 .DS_Store
 .venv
 venv
-sociable_bot/dist
-sociable_bot/src/sociable_bot.egg-info
-sociable_bot/docs/build
+ugly_bot/dist
+ugly_bot/src/ugly_bot.egg-info
+ugly_bot/docs/build
