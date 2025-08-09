@@ -138,7 +138,7 @@ This bot will create a post once per day. If you send it the message "post", it 
             if add_to_conversation:
                 message_send(files=[file])
             else:
-                message_post(files=[file])
+                message_send_all(files=[file])
 
 
         @export("search_news")

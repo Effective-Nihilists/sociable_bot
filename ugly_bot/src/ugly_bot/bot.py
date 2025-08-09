@@ -431,7 +431,7 @@ def message_send(
     )
 
 
-def message_post(
+def message_send_all(
     text: Optional[str] = None,
     image: Optional[Image] = None,
     images: Optional[List[Image]] = None,
@@ -444,10 +444,10 @@ def message_post(
     files: Optional[List[File]] = None,
 ) -> None:
     """
-    Send a message to the active conversation
+    Send a message to all conversations
     """
     call_no_return(
-        "botCodeMessagePost",
+        "botCodeMessageSendAll",
         {
             "text": text,
             "markdown": markdown,
@@ -459,6 +459,20 @@ def message_post(
             "buttons": buttons,
             "mood": mood,
             "file_ids": [file.id for file in files] if files is not None else None,
+        },
+    )
+
+
+def user_post(
+    file: File,
+) -> None:
+    """
+    Post a file
+    """
+    call_no_return(
+        "botCodeUserPost",
+        {
+            "file_id": file.id,
         },
     )
 

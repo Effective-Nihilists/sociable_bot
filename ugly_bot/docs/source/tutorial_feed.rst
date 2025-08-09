@@ -28,7 +28,7 @@ Bots can post a file to all of their 1:1 conversations, this is equivalent to po
                 markdown="CONTENT",
             )
 
-            message_post(files = [file])
+            message_send_all(files = [file])
 
         start()
 
@@ -39,5 +39,5 @@ Bots can post a file to all of their 1:1 conversations, this is equivalent to po
 
 * `TextGenModel <api.html#ugly_bot.TextGenModel>`_
 * `text_gen <api.html#ugly_bot.text_gen>`_
-* `message_post <api.html#ugly_bot.message_post>`_
+* `message_send_all <api.html#ugly_bot.message_send_all>`_
 * `TextGenMessage <api.html#ugly_bot.TextGenMessage>`_
