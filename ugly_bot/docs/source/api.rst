@@ -10,6 +10,4 @@ API
 
 .. autodata:: ugly_bot.bot.conversation_id
 
-.. autodata:: ugly_bot.bot.thread_id
-
 .. toctree::

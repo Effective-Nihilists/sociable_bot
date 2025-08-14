@@ -18,7 +18,6 @@ name_map = {
     "conversation_user_add": "conversationUserAdd",
     "conversation_user_show": "conversationUserShow",
     "user_visible": "userVisible",
-    "thread_stop": "threadStop",
     "input_changed": "inputChanged",
     "web_page_updated": "webPageUpdated",
     "tool_start": "toolStart",
@@ -142,15 +141,6 @@ class Image:
         self.prompt = prompt
 
 
-@dataclass
-class Thread:
-    id: str
-    type: str
-    meeting_id: Optional[str] = None
-    message_id: Optional[str] = None
-    section_id: Optional[str] = None
-
-
 class ButtonType(StrEnum):
     LINK = "link"
     """link"""
@@ -207,7 +197,6 @@ class Message:
     impersonate_user_id: Optional[str] = None
     file_ids: Optional[List[str]] = None
     context_file_id: Optional[str] = None
-    thread: Optional[Thread] = None
 
 
 TextGenMessageContent = Union[str, Image]
@@ -334,22 +323,6 @@ class ConversationContent:
     file_id: Optional[str] = None
     disabled: Optional[bool] = None
     uri: Optional[str] = None
-
-
-class FileSectionType(StrEnum):
-    MARKDOWN = "markdown"
-    """markdown"""
-
-
-@dataclass
-class FileSection:
-    id: str
-    type: FileSectionType
-    title: Optional[str] = None
-    thread: Optional[bool] = None
-    markdown: Optional[str] = None
-    placeholder: Optional[str] = None
-    editable: Optional[bool] = None
 
 
 @dataclass

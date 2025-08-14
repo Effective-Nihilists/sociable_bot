@@ -59,7 +59,6 @@ async def bot(bot_id: str, updated: str, request: Request):
         bot_id=bot_id,
         updated=updated,
         conversation_id=None,
-        conversation_thread_id=None,
         request=request,
     )
 
@@ -72,17 +71,14 @@ async def bot_conversation(
         bot_id=bot_id,
         updated=updated,
         conversation_id=conversation_id,
-        conversation_thread_id=None,
         request=request,
     )
 
 
-@app.post("/bot/{bot_id}/{updated}/{conversation_id}/{conversation_thread_id}")
 async def bot_everything(
     bot_id: str,
     updated: str,
     conversation_id: Optional[str],
-    conversation_thread_id: Optional[str],
     request: Request,
 ):
     body = (await request.body()).decode()
@@ -91,7 +87,6 @@ async def bot_everything(
         bot_id=bot_id,
         updated=updated,
         conversation_id=conversation_id,
-        conversation_thread_id=conversation_thread_id,
     )
 
     if bot_instance is not None and bot_instance.process.stdin is not None:
@@ -105,7 +100,6 @@ async def bot_instance_get(
     bot_id: str,
     updated: str,
     conversation_id: Optional[str],
-    conversation_thread_id: Optional[str],
 ) -> Optional[BotInstance]:
     global bot_instances, bot_containers
 
@@ -128,7 +122,7 @@ async def bot_instance_get(
     # print("Response:", json.dumps(output, indent=4))
 
     bot_container_key = f"{bot_code_id}-{bot_code_updated}"
-    bot_instance_key = f"{bot_id}-{updated}-{conversation_id}-{conversation_thread_id}"
+    bot_instance_key = f"{bot_id}-{updated}-{conversation_id}"
     bot_instance = bot_instances.get(bot_instance_key)
     if bot_instance is not None and bot_instance.process.poll() is None:
         try:
@@ -155,7 +149,6 @@ async def bot_instance_get(
                         "botId": bot_id,
                         "botCodeId": bot_code_id,
                         "conversationId": conversation_id,
-                        "conversationThreadId": conversation_thread_id,
                         "chargeUserIds": output.get("chargeUserIds"),
                     },
                     "params": {"type": "log", "args": ["[BOT] install", pip_log]},
@@ -180,7 +173,6 @@ async def bot_instance_get(
                 "botId": bot_id,
                 "botCodeId": bot_code_id,
                 "conversationId": conversation_id,
-                "conversationThreadId": conversation_thread_id,
                 "chargeUserIds": output.get("chargeUserIds"),
                 "params": output.get("params"),
             }
@@ -203,7 +195,6 @@ async def bot_instance_get(
         "botId": bot_id,
         "botCodeId": bot_code_id,
         "conversationId": conversation_id,
-        "conversationThreadId": conversation_thread_id,
         "chargeUserIds": output.get("chargeUserIds"),
     }
 
@@ -338,7 +329,6 @@ async def proxy(
     bot_id: str,
     updated: str,
     conversation_id: Optional[str] = None,
-    conversation_thread_id: Optional[str] = None,
     url: Optional[str] = None,
     session: Optional[str] = None,
 ):
@@ -347,7 +337,6 @@ async def proxy(
         bot_id=bot_id,
         updated=updated,
         conversation_id=conversation_id,
-        conversation_thread_id=conversation_thread_id,
     )
 
     # Use a javascript redirect because iOS safari
@@ -370,13 +359,6 @@ async def proxy(
     if conversation_id is not None:
         response.set_cookie(
             key="conversation_id", value=conversation_id, samesite="none", secure=True
-        )
-    if conversation_thread_id is not None:
-        response.set_cookie(
-            key="conversation_thread_id",
-            value=conversation_thread_id,
-            samesite="none",
-            secure=True,
         )
 
     return response
@@ -403,13 +385,11 @@ async def http_proxy(request: Request, path: str = ""):
     bot_id = request.cookies["bot_id"]
     updated = request.cookies["updated"]
     conversation_id = request.cookies.get("conversation_id")
-    conversation_thread_id = request.cookies.get("conversation_thread_id")
 
     bot_instance = await bot_instance_get(
         bot_id=bot_id,
         updated=updated,
         conversation_id=conversation_id,
-        conversation_thread_id=conversation_thread_id,
     )
 
     if bot_instance is None:
@@ -430,13 +410,11 @@ async def websocket_proxy(websocket: WebSocket, path: str = ""):
     bot_id = websocket.cookies["bot_id"]
     updated = websocket.cookies["updated"]
     conversation_id = websocket.cookies.get("conversation_id")
-    conversation_thread_id = websocket.cookies.get("conversation_thread_id")
 
     bot_instance = await bot_instance_get(
         bot_id=bot_id,
         updated=updated,
         conversation_id=conversation_id,
-        conversation_thread_id=conversation_thread_id,
     )
 
     if bot_instance is None:

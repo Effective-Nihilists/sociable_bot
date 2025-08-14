@@ -46,15 +46,11 @@ bot_id = json_data["botId"] if json_data is not None else None
 conversation_id = json_data["conversationId"] if json_data is not None else None
 """Conversation ID"""
 
-thread_id = json_data["conversationThreadId"] if json_data is not None else None
-"""Conversation Thread ID"""
-
 bot_context = (
     {
         "botId": json_data["botId"],
         "botCodeId": json_data["botCodeId"],
         "conversationId": json_data["conversationId"],
-        "conversationThreadId": json_data["conversationThreadId"],
         "chargeUserIds": json_data["chargeUserIds"],
     }
     if json_data is not None
@@ -113,19 +109,12 @@ def live_user_visible_arg_map(dict: Dict[Any, Any]):
     }
 
 
-def thread_arg_map(dict: Dict[Any, Any]):
-    return {
-        "thread": Thread(**dict["thread"]),
-    }
-
-
 arg_map: Dict[str, Callable[[Dict[Any, Any]], Dict[Any, Any]]] = {
     "messageDirect": message_arg_map,
     "messageAdd": message_arg_map,
     "conversationStart": conversation_arg_map,
     "conversationUserAdd": conversation_arg_map,
     "userVisible": live_user_visible_arg_map,
-    "threadStop": thread_arg_map,
 }
 
 
@@ -144,7 +133,7 @@ def convert_keys_to_snake_case(data):
 
 def convert_to_dict(data):
     if is_dataclass(data):
-        return convert_to_dict(asdict(data))
+        return convert_to_dict(asdict(data))  # type: ignore
     elif isinstance(data, SimpleNamespace):
         return convert_to_dict(data.__dict__)
     elif isinstance(data, dict):
@@ -402,7 +391,7 @@ def message_send(
     mood: Optional[Mood] = None,
     impersonate_user_id: Optional[str] = None,
     files: Optional[List[File]] = None,
-    thread: Optional[Thread] = None,
+    parent_message_id: Optional[str] = None,
 ) -> Message:
     """
     Send a message to the active conversation
@@ -425,7 +414,7 @@ def message_send(
                 "mood": mood,
                 "impersonate_user_id": impersonate_user_id,
                 "file_ids": [file.id for file in files] if files is not None else None,
-                "thread": thread,
+                "parent_message_id": parent_message_id,
             },
         )
     )
@@ -529,7 +518,6 @@ def message_history(
     limit: Optional[int] = None,
     start: Optional[int] = None,
     include_hidden: Optional[bool] = None,
-    thread_id: Optional[str] = None,
 ) -> List[Message]:
     """
     Get messages from the active conversation
@@ -541,7 +529,6 @@ def message_history(
             "limit": limit,
             "start": start,
             "include_hidden": include_hidden,
-            "thread_id": thread_id,
         },
     )
 
@@ -890,90 +877,6 @@ def file_update(
             "thumbnail": thumbnail,
         },
     )
-
-
-def file_book_character_set(
-    file_id: str,
-    character_id: str,
-    image: Image,
-    name: str,
-    voice_id: str,
-) -> None:
-    """
-    Set book character
-    """
-    call_no_return(
-        "botCodeFileBookCharacterSet",
-        {
-            "file_id": file_id,
-            "character_id": character_id,
-            "image": image,
-            "name": name,
-            "voice_id": voice_id,
-        },
-    )
-
-
-def file_book_page_add(
-    file_id: str,
-    image: Optional[Image] = None,
-) -> int:
-    """
-    Create book page
-    """
-    result: Dict[Any, Any] = call_return(
-        "botCodeFileBookPageSet",
-        {
-            "file_id": file_id,
-            "image": image,
-        },
-    )
-
-    return result.get("page_index", 0)
-
-
-def file_book_page_line_add(
-    file_id: str,
-    page_index: int,
-    character_id: str,
-    markdown: str,
-) -> int:
-    """
-    Create book page line
-    """
-    result: Dict[Any, Any] = call_return(
-        "botCodeFileBookPageLineSet",
-        {
-            "file_id": file_id,
-            "page_index": page_index,
-            "line": {
-                "character_id": character_id,
-                "markdown": markdown,
-            },
-        },
-    )
-
-    return result.get("line_index", 0)
-
-
-def file_book_user_context_set(
-    file_id: str,
-    page_index: Optional[int] = None,
-    line_index: Optional[int] = None,
-) -> int:
-    """
-    Create book page line
-    """
-    return call_return(
-        "botCodeFileBookUserContextSet",
-        {
-            "file_id": file_id,
-            "fields": {
-                "page_index": page_index,
-                "line_index": line_index,
-            },
-        },
-    ).line_index
 
 
 def file_to_text_gen_message(

@@ -133,14 +133,10 @@ class FileType(StrEnum):
     """image"""
     PDF = "pdf"
     """pdf"""
-    BOT = "bot"
-    """bot"""
     AUDIO = "audio"
     """audio"""
     VIDEO = "video"
     """video"""
-    BOOK = "book"
-    """book"""
 
 
 class BotTag(StrEnum):
@@ -154,6 +150,8 @@ class BotTag(StrEnum):
     """cron"""
     WEB = "web"
     """web"""
+    NEWS = "news"
+    """news"""
 
 
 class Timezone(StrEnum):
