@@ -140,10 +140,6 @@ class FileType(StrEnum):
 
 
 class BotTag(StrEnum):
-    TOOL = "tool"
-    """tool"""
-    DOC = "doc"
-    """doc"""
     VIDEO = "video"
     """video"""
     CRON = "cron"

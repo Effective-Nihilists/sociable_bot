@@ -50,12 +50,6 @@ A Bot exports functions, so Ugly can trigger different actions. There are some b
         ):
             # This is called when a user's video is available for the first time
 
-        @export("input_changed")
-        def input_changed(user_id: str, text: str):
-            # This is called as the user is typing, only if the bot is selected 
-            # in the bot toolbar
-            # requires tag "tool"
-
         @export("web_page_updated")
         def web_page_updated(
             user_id: str, 

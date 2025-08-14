@@ -24,7 +24,6 @@ __all__ = [
     "messages_to_text",
     "message_history",
     "text_gen",
-    "tool_context_menu_set",
     "tool_conversation_show",
     "query_files",
     "query_news",

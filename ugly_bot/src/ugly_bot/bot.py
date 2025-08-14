@@ -783,21 +783,6 @@ def conversation_buttons_show(
     )
 
 
-def tool_context_menu_set(
-    user_id: str, menu_items: Optional[List[MenuItem]] = None
-) -> None:
-    """
-    Add context menu to the current web page all of the time
-    """
-    call_no_return(
-        "botCodeToolContextMenuSet",
-        {
-            "user_id": user_id,
-            "menu_items": menu_items,
-        },
-    )
-
-
 def tool_conversation_show(
     session_id: str,
     video_call_enabled: Optional[bool] = None,

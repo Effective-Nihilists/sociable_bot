@@ -18,9 +18,7 @@ name_map = {
     "conversation_user_add": "conversationUserAdd",
     "conversation_user_show": "conversationUserShow",
     "user_visible": "userVisible",
-    "input_changed": "inputChanged",
     "web_page_updated": "webPageUpdated",
-    "tool_start": "toolStart",
 }
 
 
