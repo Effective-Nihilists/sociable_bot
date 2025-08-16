@@ -12,6 +12,7 @@ from contextlib import closing
 from dataclasses import dataclass
 from subprocess import PIPE, Popen
 from typing import Optional
+from xmlrpc.client import ResponseError
 
 import httpx
 import requests
@@ -51,6 +52,12 @@ bot_instances: dict[str, BotInstance] = {}
 bot_containers: dict[str, BotContainer] = {}
 
 app = FastAPI()
+
+
+@app.post("/ping/{bot_id}")
+async def ping(bot_id: str, response: Response):
+    response.set_cookie(key="bot_id", value=bot_id)
+    return "OK"
 
 
 @app.post("/bot/{bot_id}/{updated}")
