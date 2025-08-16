@@ -1,8 +1,10 @@
 import base64 as BASE64
 import inspect
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Dict, List, Optional, Union
+
+from pydantic import ConfigDict
+from pydantic.dataclasses import dataclass
 
 from .bot_enums import *
 
@@ -93,6 +95,8 @@ class ImageMimeType(StrEnum):
 
 @dataclass
 class Image:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     type: ImageType
     width: int
     height: int
@@ -155,6 +159,8 @@ class ButtonType(StrEnum):
 
 @dataclass
 class Button:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     type: ButtonType
     icon: Optional[Icon] = None
     text: Optional[str] = None
@@ -169,6 +175,8 @@ class Button:
 
 @dataclass
 class MenuItem:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     func: str
     title: str
     params: Optional[Dict[str, Any]] = None
@@ -178,6 +186,8 @@ class MenuItem:
 
 @dataclass
 class Message:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     id: str
     created: int
     user_id: str
@@ -195,6 +205,7 @@ class Message:
     impersonate_user_id: Optional[str] = None
     file_ids: Optional[List[str]] = None
     context_file_id: Optional[str] = None
+    parent_message_id: Optional[str] = None
 
 
 TextGenMessageContent = Union[str, Image]
@@ -202,12 +213,16 @@ TextGenMessageContent = Union[str, Image]
 
 @dataclass
 class TextGenMessage:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     role: TextGenRole
     content: Union[str, List[TextGenMessageContent]]
 
 
 @dataclass
 class TextGenTool:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     name: str
     description: str
     parameters: Optional[Dict[str, Any]] = None
@@ -215,12 +230,16 @@ class TextGenTool:
 
 @dataclass
 class Avatar:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     image: Image
     background: Optional[Image]
 
 
 @dataclass
 class User:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     id: str
     name: str
     bio: str
@@ -234,6 +253,8 @@ class User:
 
 @dataclass
 class Emotion:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     neutral: int
     happy: int
     sad: int
@@ -245,6 +266,8 @@ class Emotion:
 
 @dataclass
 class LiveUser:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     id: str
     emotion: Optional[Emotion]
     image: Optional[Image]
@@ -252,6 +275,8 @@ class LiveUser:
 
 @dataclass
 class Bot:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     id: str
     name: str
     bio: str
@@ -259,14 +284,9 @@ class Bot:
 
 
 @dataclass
-class Character:
-    image: Image
-    name: str
-    voice_id: str
-
-
-@dataclass
 class File:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     id: str
     user_id: str
     type: FileType
@@ -276,11 +296,12 @@ class File:
     thumbnail: Optional[Image] = None
     markdown: Optional[str] = None
     uri: Optional[str] = None
-    characters: Optional[Dict[str, Character]] = None
 
 
 @dataclass
 class Conversation:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     id: str
     type: ConversationType
     title: str
@@ -289,6 +310,8 @@ class Conversation:
 
 @dataclass
 class NewsArticle:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     title: str
     content: str
     uri: Optional[str]
@@ -296,12 +319,16 @@ class NewsArticle:
 
 @dataclass
 class FileChunk:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     file_id: str
     text: str
 
 
 @dataclass
 class SearchArticle:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     title: str
     synopsis: str
     uri: Optional[str]
@@ -317,6 +344,8 @@ class ConversationContentType(StrEnum):
 
 @dataclass
 class ConversationContent:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     type: ConversationContentType
     file_id: Optional[str] = None
     disabled: Optional[bool] = None
@@ -325,6 +354,8 @@ class ConversationContent:
 
 @dataclass
 class WebPageData:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     html: str
     url: str
     title: str
@@ -332,6 +363,8 @@ class WebPageData:
 
 @dataclass
 class KagiSearchItem:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     url: str
     title: str
     snippet: str
@@ -359,6 +392,8 @@ class KagiSearchItem:
 
 @dataclass
 class KagiSearchOutput:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     items: List[KagiSearchItem]
     related: Optional[List[str]] = None
 
@@ -375,6 +410,8 @@ class KagiSearchOutput:
 
 @dataclass
 class Padding:
+    model_config = ConfigDict(extra="ignore")  # Ignore extra fields
+
     left: int
     top: int
     right: int

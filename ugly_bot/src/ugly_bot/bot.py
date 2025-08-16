@@ -1,15 +1,15 @@
-import asyncio
 import json
 import os
 import re
 import sys
 import threading
 import typing
-from dataclasses import asdict, dataclass, is_dataclass
+from dataclasses import asdict, is_dataclass
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import socketio
+from pydantic.dataclasses import dataclass
 
 from .bot_types import *
 
@@ -18,6 +18,8 @@ from .bot_types import *
 #     print("Arguments:", arguments)
 # else:
 #     print("No arguments provided.")
+
+current_args = {}
 
 
 @dataclass
@@ -188,6 +190,8 @@ def start():
 
 
 def run_call(message: str):
+    global current_args
+
     msg = typing.cast(Any, convert_keys_to_snake_case(json.loads(message)))
     log("[BOT] message", msg)
     funcName = msg.get("func")
@@ -196,9 +200,10 @@ def run_call(message: str):
     if func is not None:
         arg_mapper = arg_map.get(funcName)
         if arg_mapper is not None:
-            func(**arg_mapper(funcParams))
+            current_args = arg_mapper(funcParams)
         else:
-            func(**funcParams)
+            current_args = funcParams
+        func(**current_args)
 
 
 def start_nonblocking():
@@ -391,11 +396,13 @@ def message_send(
     mood: Optional[Mood] = None,
     impersonate_user_id: Optional[str] = None,
     files: Optional[List[File]] = None,
-    parent_message_id: Optional[str] = None,
 ) -> Message:
     """
     Send a message to the active conversation
     """
+
+    print(current_args)
+
     return Message(
         **call_return(
             "botCodeMessageSend",
@@ -414,7 +421,9 @@ def message_send(
                 "mood": mood,
                 "impersonate_user_id": impersonate_user_id,
                 "file_ids": [file.id for file in files] if files is not None else None,
-                "parent_message_id": parent_message_id,
+                "parent_message_id": getattr(
+                    current_args.get("message", None), "parent_message_id", None
+                ),
             },
         )
     )
@@ -822,7 +831,6 @@ def file_create(
     thumbnail: Optional[Image] = None,
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
-    characters: Optional[Dict[str, Character]] = None,
 ) -> File:
     """
     Create file
@@ -838,7 +846,6 @@ def file_create(
                 "thumbnail": thumbnail,
                 "lang": lang,
                 "indexable": indexable,
-                "characters": characters,
             },
         )
     )
