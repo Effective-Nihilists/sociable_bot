@@ -377,7 +377,11 @@ def message_typing() -> None:
     """
     call_no_return(
         "botCodeMessageTyping",
-        {},
+        {
+            "parent_message_id": getattr(
+                current_args.get("message", None), "parent_message_id", None
+            ),
+        },
     )
 
 

@@ -103,7 +103,8 @@ class Image:
     base64: Optional[str] = None
     mime_type: Optional[ImageMimeType] = None
     uri: Optional[str] = None
-    prompt: Optional[str] = None
+    description: Optional[str] = None
+    sizes: Optional[List[int]] = None
 
     def __init__(
         self,
@@ -113,7 +114,8 @@ class Image:
         base64: Optional[str] = None,
         mime_type: Optional[ImageMimeType] = None,
         uri: Optional[str] = None,
-        prompt: Optional[str] = None,
+        description: Optional[str] = None,
+        sizes: Optional[List[int]] = None,
         file: Optional[str] = None,
         buffer: Optional[bytes] = None,
     ):
@@ -140,7 +142,8 @@ class Image:
             else (ImageMimeType.JPG if base64 is not None else None)
         )
         self.uri = uri
-        self.prompt = prompt
+        self.description = description
+        self.sizes = sizes
 
 
 class ButtonType(StrEnum):

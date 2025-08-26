@@ -56,7 +56,7 @@ app = FastAPI()
 
 @app.post("/ping/{bot_id}")
 async def ping(bot_id: str, response: Response):
-    response.set_cookie(key="bot_id", value=bot_id)
+    response.set_cookie(key="bot_id", value=bot_id, path=None, samesite=None)
     return "OK"
 
 
