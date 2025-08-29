@@ -835,6 +835,7 @@ def file_create(
     thumbnail: Optional[Image] = None,
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
+    ui: Optional[dict] = None,
 ) -> File:
     """
     Create file
@@ -850,6 +851,7 @@ def file_create(
                 "thumbnail": thumbnail,
                 "lang": lang,
                 "indexable": indexable,
+                "ui": ui,
             },
         )
     )
@@ -860,6 +862,7 @@ def file_update(
     markdown: Optional[str] = None,
     title: Optional[str] = None,
     thumbnail: Optional[Image] = None,
+    ui: Optional[dict] = None,
 ) -> None:
     """
     Update file, only supported on markdown files
@@ -871,6 +874,7 @@ def file_update(
             "title": title,
             "markdown": markdown,
             "thumbnail": thumbnail,
+            "ui": ui,
         },
     )
 
