@@ -657,6 +657,19 @@ def image_gen(
     return Image(**result) if result is not None else None
 
 
+def image_upload(image: Optional[Image]) -> Optional[Image]:
+    """
+    Upload an image
+    """
+    result = call_return(
+        "botCodeImageUpload",
+        {
+            "image": image,
+        },
+    )
+    return Image(**result) if result is not None else None
+
+
 def google_search(query: str) -> List[SearchArticle]:
     """
     Google search
@@ -829,13 +842,13 @@ def conversation_context_menu_set(
 
 def file_create(
     type: FileType,
-    title: str,
+    title: Optional[str] = None,
     markdown: Optional[str] = None,
     uri: Optional[str] = None,
     thumbnail: Optional[Image] = None,
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
-    ui: Optional[dict] = None,
+    page: Optional[dict] = None,
 ) -> File:
     """
     Create file
@@ -851,7 +864,7 @@ def file_create(
                 "thumbnail": thumbnail,
                 "lang": lang,
                 "indexable": indexable,
-                "ui": ui,
+                "page": page,
             },
         )
     )
@@ -862,10 +875,10 @@ def file_update(
     markdown: Optional[str] = None,
     title: Optional[str] = None,
     thumbnail: Optional[Image] = None,
-    ui: Optional[dict] = None,
+    page: Optional[dict] = None,
 ) -> None:
     """
-    Update file, only supported on markdown files
+    Update file, only supported on markdown & page files
     """
     call_no_return(
         "botCodeFileUpdate",
@@ -874,7 +887,7 @@ def file_update(
             "title": title,
             "markdown": markdown,
             "thumbnail": thumbnail,
-            "ui": ui,
+            "page": page,
         },
     )
 

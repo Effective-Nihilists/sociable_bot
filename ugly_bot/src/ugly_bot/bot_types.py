@@ -299,7 +299,7 @@ class File:
     thumbnail: Optional[Image] = None
     markdown: Optional[str] = None
     uri: Optional[str] = None
-    ui: Optional[dict] = None
+    page: Optional[dict] = None
 
 
 @dataclass

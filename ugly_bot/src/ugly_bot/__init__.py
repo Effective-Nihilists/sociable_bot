@@ -28,6 +28,7 @@ __all__ = [
     "query_files",
     "query_news",
     "image_gen",
+    "image_upload",
     "google_search",
     "email_send",
     "conversation_users",
