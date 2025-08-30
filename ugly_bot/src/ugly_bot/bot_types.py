@@ -10,19 +10,6 @@ from .bot_enums import *
 
 funcs = {}
 
-name_map = {
-    "message_direct": "messageDirect",
-    "message_add": "messageAdd",
-    "bot_hourly": "botHourly",
-    "file_create": "fileCreate",
-    "conversation_hourly": "conversationHourly",
-    "conversation_start": "conversationStart",
-    "conversation_user_add": "conversationUserAdd",
-    "conversation_user_show": "conversationUserShow",
-    "user_visible": "userVisible",
-    "web_page_updated": "webPageUpdated",
-}
-
 
 def export(name: str):
     """
@@ -59,9 +46,7 @@ def export(name: str):
                 return func(**filtered_kwargs)
             return func(**kwargs)
 
-        mapped_name = name_map.get(name)
-
-        funcs[mapped_name if mapped_name is not None else name] = wrapper
+        funcs[name] = wrapper
 
         return func
 

@@ -26,7 +26,6 @@ current_args = {}
 class Call:
     op: str
     params: dict
-    case_change: bool
 
 
 app_host = os.environ.get("APP_HOST", "localhost:3000")
@@ -112,25 +111,12 @@ def live_user_visible_arg_map(dict: Dict[Any, Any]):
 
 
 arg_map: Dict[str, Callable[[Dict[Any, Any]], Dict[Any, Any]]] = {
-    "messageDirect": message_arg_map,
-    "messageAdd": message_arg_map,
-    "conversationStart": conversation_arg_map,
-    "conversationUserAdd": conversation_arg_map,
-    "userVisible": live_user_visible_arg_map,
+    "message_direct": message_arg_map,
+    "message_add": message_arg_map,
+    "conversation_start": conversation_arg_map,
+    "conversation_user_add": conversation_arg_map,
+    "user_visible": live_user_visible_arg_map,
 }
-
-
-def convert_keys_to_snake_case(data):
-    if isinstance(data, dict):
-        new_data = {}
-        for key, value in data.items():
-            new_key = re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower()
-            new_data[new_key] = convert_keys_to_snake_case(value)
-        return new_data
-    elif isinstance(data, list):
-        return [convert_keys_to_snake_case(item) for item in data]
-    else:
-        return data
 
 
 def convert_to_dict(data):
@@ -142,30 +128,6 @@ def convert_to_dict(data):
         return dict(map(lambda kv: (kv[0], convert_to_dict(kv[1])), data.items()))
     elif isinstance(data, list) or isinstance(data, tuple):
         return list(map(lambda v: convert_to_dict(v), data))
-    else:
-        return data
-
-
-def to_camel_case(snake_str):
-    return "".join(x.capitalize() for x in snake_str.lower().split("_"))
-
-
-def to_lower_camel_case(snake_str):
-    # We capitalize the first letter of each component except the first one
-    # with the 'capitalize' method and join them together.
-    camel_string = to_camel_case(snake_str)
-    return snake_str[0].lower() + camel_string[1:]
-
-
-def convert_keys_to_camel_case(data):
-    if isinstance(data, dict):
-        new_data = {}
-        for key, value in data.items():
-            new_key = to_lower_camel_case(key)
-            new_data[new_key] = convert_keys_to_camel_case(value)
-        return new_data
-    elif isinstance(data, list):
-        return [convert_keys_to_camel_case(item) for item in data]
     else:
         return data
 
@@ -184,7 +146,7 @@ def start():
     calls = pending_calls
     pending_calls = []
     for call in calls:
-        call_no_return(call.op, call.params, call.case_change)
+        call_no_return(call.op, call.params)
 
     message_read_loop()
 
@@ -192,7 +154,7 @@ def start():
 def run_call(message: str):
     global current_args
 
-    msg = typing.cast(Any, convert_keys_to_snake_case(json.loads(message)))
+    msg = typing.cast(Any, json.loads(message))
     log("[BOT] message", msg)
     funcName = msg.get("func")
     funcParams = msg.get("params")
@@ -219,7 +181,7 @@ def start_nonblocking():
     calls = pending_calls
     pending_calls = []
     for call in calls:
-        call_no_return(call.op, call.params, call.case_change)
+        call_no_return(call.op, call.params)
 
     thread = threading.Thread(target=message_read_loop)
     thread.start()
@@ -233,7 +195,7 @@ def message_read_loop():
             run_call(message)
 
 
-def call_return(op: str, params: dict, case_change: bool = True) -> Any:
+def call_return(op: str, params: dict) -> Any:
     if not started:
         raise Exception(
             "You cannot call bot functions that require a return value until after start()"
@@ -247,9 +209,7 @@ def call_return(op: str, params: dict, case_change: bool = True) -> Any:
             "op": op,
             "input": {
                 "context": bot_context,
-                "params": (
-                    convert_keys_to_camel_case(converted) if case_change else converted
-                ),
+                "params": converted,
             },
         },
     )
@@ -261,16 +221,12 @@ def call_return(op: str, params: dict, case_change: bool = True) -> Any:
     if error is not None:
         raise Exception(error)
 
-    return (
-        convert_keys_to_snake_case(result.get("data"))
-        if case_change
-        else result.get("data")
-    )
+    return result.get("data")
 
 
-def call_no_return(op: str, params: Any, case_change: bool = True) -> None:
+def call_no_return(op: str, params: Any) -> None:
     if not started:
-        pending_calls.append(Call(op=op, params=params, case_change=case_change))
+        pending_calls.append(Call(op=op, params=params))
         return
 
     converted = convert_to_dict(params)
@@ -281,9 +237,7 @@ def call_no_return(op: str, params: Any, case_change: bool = True) -> None:
             "op": op,
             "input": {
                 "context": bot_context,
-                "params": (
-                    convert_keys_to_camel_case(converted) if case_change else converted
-                ),
+                "params": converted,
             },
         },
     )
@@ -976,7 +930,6 @@ def log(
             "type": "log",
             "args": args,
         },
-        case_change=False,
     )
 
 
@@ -992,7 +945,6 @@ def error(
             "type": "error",
             "args": args,
         },
-        case_change=False,
     )
 
 
