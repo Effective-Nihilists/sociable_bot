@@ -611,18 +611,17 @@ def query_files(
 
 
 def query_news(
-    query: str, created: Optional[int] = None, limit: Optional[int] = None
+    query: Optional[str] = None,
+    created: Optional[int] = None,
+    limit: Optional[int] = None,
+    categories: Optional[List[NewsCategory]] = None,
 ) -> List[NewsArticle]:
     """
     Get news based on semantic search using the query
     """
     result = call_return(
         "botCodeQueryNews",
-        {
-            "query": query,
-            "created": created,
-            "limit": limit,
-        },
+        {"query": query, "created": created, "limit": limit, "categories": categories},
     )
 
     return list(map(lambda m: NewsArticle(**m), result))
@@ -849,6 +848,7 @@ def file_create(
     lang: Optional[UserLang] = None,
     indexable: Optional[bool] = None,
     page: Optional[dict] = None,
+    tags: Optional[List[str]] = None,
 ) -> File:
     """
     Create file
@@ -865,6 +865,7 @@ def file_create(
                 "lang": lang,
                 "indexable": indexable,
                 "page": page,
+                "tags": tags,
             },
         )
     )

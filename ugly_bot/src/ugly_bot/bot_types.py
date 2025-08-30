@@ -300,6 +300,7 @@ class File:
     markdown: Optional[str] = None
     uri: Optional[str] = None
     page: Optional[dict] = None
+    tags: Optional[List[str]] = None
 
 
 @dataclass

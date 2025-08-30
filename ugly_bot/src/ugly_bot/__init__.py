@@ -95,4 +95,5 @@ __all__ = [
     "ConversationType",
     "TextGenRole",
     "TextGenModel",
+    "NewsCategory",
 ]
