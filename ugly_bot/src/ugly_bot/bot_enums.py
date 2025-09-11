@@ -52,10 +52,14 @@ class ImageGenSize(StrEnum):
     """portrait_4_3"""
     PORTRAIT_16_9 = "portrait_16_9"
     """portrait_16_9"""
+    PORTRAIT_21_9 = "portrait_21_9"
+    """portrait_21_9"""
     LANDSCAPE_4_3 = "landscape_4_3"
     """landscape_4_3"""
     LANDSCAPE_16_9 = "landscape_16_9"
     """landscape_16_9"""
+    LANDSCAPE_21_9 = "landscape_21_9"
+    """landscape_21_9"""
 
 
 class MessageVisibility(StrEnum):

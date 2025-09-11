@@ -80,6 +80,10 @@ class ImageMimeType(StrEnum):
 
 @dataclass
 class Image:
+    """
+    Image
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     type: ImageType
@@ -147,6 +151,10 @@ class ButtonType(StrEnum):
 
 @dataclass
 class Button:
+    """
+    Button
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     type: ButtonType
@@ -163,6 +171,10 @@ class Button:
 
 @dataclass
 class MenuItem:
+    """
+    MenuItem
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     func: str
@@ -174,6 +186,10 @@ class MenuItem:
 
 @dataclass
 class Message:
+    """
+    Message
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     id: str
@@ -201,6 +217,10 @@ TextGenMessageContent = Union[str, Image]
 
 @dataclass
 class TextGenMessage:
+    """
+    TextGenMessage
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     role: TextGenRole
@@ -209,6 +229,10 @@ class TextGenMessage:
 
 @dataclass
 class TextGenTool:
+    """
+    TextGenTool
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     name: str
@@ -218,6 +242,10 @@ class TextGenTool:
 
 @dataclass
 class Avatar:
+    """
+    Avatar
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     image: Image
@@ -226,6 +254,10 @@ class Avatar:
 
 @dataclass
 class User:
+    """
+    User
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     id: str
@@ -241,6 +273,10 @@ class User:
 
 @dataclass
 class Emotion:
+    """
+    Emotion
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     neutral: int
@@ -254,6 +290,10 @@ class Emotion:
 
 @dataclass
 class LiveUser:
+    """
+    LiveUser
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     id: str
@@ -263,6 +303,10 @@ class LiveUser:
 
 @dataclass
 class Bot:
+    """
+    Bot
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     id: str
@@ -273,6 +317,10 @@ class Bot:
 
 @dataclass
 class File:
+    """
+    File
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     id: str
@@ -290,16 +338,25 @@ class File:
 
 @dataclass
 class Conversation:
+    """
+    Conversation
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     id: str
     type: ConversationType
     title: str
     file_id: Optional[str] = None
+    context: Optional[str] = None
 
 
 @dataclass
 class NewsArticle:
+    """
+    NewsArticle
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     title: str
@@ -309,6 +366,10 @@ class NewsArticle:
 
 @dataclass
 class FileChunk:
+    """
+    FileChunk
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     file_id: str
@@ -317,6 +378,10 @@ class FileChunk:
 
 @dataclass
 class SearchArticle:
+    """
+    USearchArticlesSearchArticleer
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     title: str
@@ -334,6 +399,10 @@ class ConversationContentType(StrEnum):
 
 @dataclass
 class ConversationContent:
+    """
+    ConversationContent
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     type: ConversationContentType
@@ -344,6 +413,10 @@ class ConversationContent:
 
 @dataclass
 class WebPageData:
+    """
+    WebPageData
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     html: str
@@ -353,6 +426,10 @@ class WebPageData:
 
 @dataclass
 class KagiSearchItem:
+    """
+    KagiSearchItem
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     url: str
@@ -382,6 +459,10 @@ class KagiSearchItem:
 
 @dataclass
 class KagiSearchOutput:
+    """
+    KagiSearchOutput
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     items: List[KagiSearchItem]
@@ -400,6 +481,10 @@ class KagiSearchOutput:
 
 @dataclass
 class Padding:
+    """
+    Padding
+    """
+
     model_config = ConfigDict(extra="ignore")  # Ignore extra fields
 
     left: int

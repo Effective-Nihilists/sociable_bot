@@ -204,14 +204,15 @@ def call_return(op: str, params: dict) -> Any:
     converted = convert_to_dict(params)
     # print("[BOT] client socket send", op, bot_context, converted)
     result = sio.call(
-        "call",
-        {
+        event="call",
+        data={
             "op": op,
             "input": {
                 "context": bot_context,
                 "params": converted,
             },
         },
+        timeout=300,
     )
 
     if result is None:
@@ -232,14 +233,15 @@ def call_no_return(op: str, params: Any) -> None:
     converted = convert_to_dict(params)
     # print("[BOT] client socket send", op, bot_context, converted)
     result = sio.call(
-        "call",
-        {
+        event="call",
+        data={
             "op": op,
             "input": {
                 "context": bot_context,
                 "params": converted,
             },
         },
+        timeout=300,
     )
 
     if result is None:
