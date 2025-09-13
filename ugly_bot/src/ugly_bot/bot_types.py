@@ -347,7 +347,6 @@ class Conversation:
     id: str
     type: ConversationType
     title: str
-    file_id: Optional[str] = None
     context: Optional[str] = None
 
 
