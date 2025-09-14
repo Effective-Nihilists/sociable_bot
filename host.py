@@ -294,9 +294,12 @@ def cron():
             bot_instance_kill(key)
 
         # If no bot message in last 5 minutes then kill the process
-        if now - bot_instance.last_message > 5 * 60:
+        elif now - bot_instance.last_message > 5 * 60:
             print(f"[BOT] {key} inactive")
             bot_instance_kill(key)
+
+        else:
+            print(f"[BOT] {key} active")
 
 
 def bot_instance_kill(key: str):
