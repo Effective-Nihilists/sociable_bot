@@ -306,7 +306,13 @@ def bot_instance_kill(key: str):
     global bot_instances, bot_containers
 
     bot_instance = bot_instances[key]
-    bot_instance.process.kill()
+    bot_instance.process.terminate()
+    return_code = bot_instance.process.wait(3)
+    print(f"[BOT] {key} terminate returned {return_code}")
+    if return_code is not None:
+        bot_instance.process.kill()
+        bot_instance.process.wait(3)
+        print(f"[BOT] {key} kill returned {return_code}")
     del bot_instances[key]
 
     bot_container = bot_containers.get(bot_instance.bot_container_key)
