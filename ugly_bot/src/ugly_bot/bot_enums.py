@@ -324,8 +324,6 @@ class ConversationType(StrEnum):
     """group"""
     BOT = "bot"
     """bot"""
-    FILE = "file"
-    """file"""
 
 
 class TextGenRole(StrEnum):
@@ -352,8 +350,6 @@ class TextGenModel(StrEnum):
     """together_meta_llama_3_405b"""
     TOGETHER_META_LLAMA_VISION_3_11B = "together_meta_llama_vision_3_11b"
     """together_meta_llama_vision_3_11b"""
-    TOGETHER_META_LLAMA_VISION_3_90B = "together_meta_llama_vision_3_90b"
-    """together_meta_llama_vision_3_90b"""
     TOGETHER_META_LLAMA4_400B = "together_meta_llama4_400b"
     """together_meta_llama4_400b"""
     TOGETHER_QWEN2_VISION_72B = "together_qwen2_vision_72b"
