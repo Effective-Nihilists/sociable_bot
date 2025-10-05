@@ -15,6 +15,7 @@ __all__ = [
     "live_user_get",
     "bot_get",
     "bot_owners_get",
+    "message_continue",
     "message_typing",
     "message_send",
     "message_send_all",

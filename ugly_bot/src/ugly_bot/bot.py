@@ -111,6 +111,7 @@ def live_user_visible_arg_map(dict: Dict[Any, Any]):
 
 
 arg_map: Dict[str, Callable[[Dict[Any, Any]], Dict[Any, Any]]] = {
+    "message_moderate": message_arg_map,
     "message_direct": message_arg_map,
     "message_add": message_arg_map,
     "conversation_start": conversation_arg_map,
@@ -386,6 +387,19 @@ def message_send(
                 ),
             },
         )
+    )
+
+
+def message_continue(message: Message) -> None:
+    """
+    Continue a message to the active conversation, only used by moderator bots
+    """
+
+    print(current_args)
+
+    return call_no_return(
+        "botCodeMessageContinue",
+        {"message": message},
     )
 
 

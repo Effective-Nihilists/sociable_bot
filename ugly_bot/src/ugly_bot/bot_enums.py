@@ -154,6 +154,8 @@ class BotTag(StrEnum):
     """web"""
     NEWS = "news"
     """news"""
+    MODERATOR = "moderator"
+    """moderator"""
 
 
 class Timezone(StrEnum):

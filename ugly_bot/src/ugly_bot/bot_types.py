@@ -210,6 +210,9 @@ class Message:
     file_ids: Optional[List[str]] = None
     context_file_id: Optional[str] = None
     parent_message_id: Optional[str] = None
+    cache_text_to_speech: Optional[bool] = None
+    transcribed: Optional[bool] = None
+    body_html: Optional[str] = None
 
 
 TextGenMessageContent = Union[str, Image]
