@@ -115,7 +115,9 @@ arg_map: Dict[str, Callable[[Dict[Any, Any]], Dict[Any, Any]]] = {
     "message_direct": message_arg_map,
     "message_add": message_arg_map,
     "conversation_start": conversation_arg_map,
-    "conversation_user_add": conversation_arg_map,
+    "conversation_user_add": conversation_user_arg_map,
+    "conversation_user_show": conversation_user_arg_map,
+    "conversation_update": conversation_arg_map,
     "user_visible": live_user_visible_arg_map,
 }
 

@@ -38,10 +38,18 @@ A Bot exports functions, so Ugly can trigger different actions. There are some b
             # This call once an hour for every conversation where this bot is 
             # a member, hour is the hour of the day in UTC/GMT time
             # Requires tag "cron"
+
+        @export("conversation_update")
+        def conversation_update(conversation: Conversation):
+            # This is called when the bot code has been updated
             
         @export("conversation_user_add")
         def conversation_user_add(user: User, conversation: Conversation):
             # This is called when a user is added to a conversation
+
+        @export("conversation_user_show")
+        def conversation_user_show(user: User, conversation: Conversation):
+            # This is called when a user opens a conversation
 
         @export("user_visible")
         def user_visible(
