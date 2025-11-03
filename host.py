@@ -309,9 +309,9 @@ def bot_instance_kill(key: str):
     bot_instance.process.terminate()
     return_code = bot_instance.process.wait(3)
     print(f"[BOT] {key} terminate returned {return_code}")
-    if return_code is not None:
+    if return_code is None:
         bot_instance.process.kill()
-        bot_instance.process.wait(3)
+        return_code = bot_instance.process.wait(3)
         print(f"[BOT] {key} kill returned {return_code}")
     del bot_instances[key]
 
