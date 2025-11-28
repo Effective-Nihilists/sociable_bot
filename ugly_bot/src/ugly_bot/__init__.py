@@ -47,6 +47,8 @@ __all__ = [
     "markdown_create_image",
     "data_set",
     "data_get",
+    "user_data_set",
+    "user_data_get",
     "web_page_get",
     "log",
     "error",

@@ -902,7 +902,7 @@ def markdown_create_image(file_id: str, image: Image) -> str:
 
 def data_set(**kwargs) -> SimpleNamespace:
     """
-    Set bot data
+    Set bot data for conversation
     """
     return SimpleNamespace(
         **call_return(
@@ -914,12 +914,41 @@ def data_set(**kwargs) -> SimpleNamespace:
 
 def data_get() -> SimpleNamespace:
     """
-    Get bot data
+    Get bot data for conversation
     """
     return SimpleNamespace(
         **call_return(
             "botCodeDataGet",
             {},
+        )
+    )
+
+
+def user_data_set(user_id: str, **kwargs) -> SimpleNamespace:
+    """
+    Set bot data for specified user
+    """
+    return SimpleNamespace(
+        **call_return(
+            "botCodeUserDataSet",
+            {
+                "user_id": user_id,
+                "data": kwargs,
+            },
+        )
+    )
+
+
+def user_data_get(user_id: str) -> SimpleNamespace:
+    """
+    Get bot data for specified user
+    """
+    return SimpleNamespace(
+        **call_return(
+            "botCodeUserDataGet",
+            {
+                "user_id": user_id,
+            },
         )
     )
 
