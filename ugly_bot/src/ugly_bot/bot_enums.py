@@ -392,8 +392,6 @@ class TextGenModel(StrEnum):
     """perplexity_llama_3_sonar_huge_128k_online"""
     OPENAI_GPT_5 = "openai_gpt_5"
     """openai_gpt_5"""
-    OPENAI_GPT_5_PRO = "openai_gpt_5_pro"
-    """openai_gpt_5_pro"""
     OPENAI_GPT_5_MINI = "openai_gpt_5_mini"
     """openai_gpt_5_mini"""
     OPENAI_GPT_4 = "openai_gpt_4"
